@@ -32,6 +32,32 @@ Always begin with pulling the latest version from Git.
 git pull
 ```
 
+### Start development servers
+
+> Assuming you are at the root directory of the project
+
+To start the Frontend server:
+
+```
+cd client && npm run serve
+```
+
+To start the Backend server:
+
+```
+cd server
+```
+
+and then
+
+```
+mvn clean spring-boot:run
+```
+
+everytime you change a file (or you can set up a continous build system!).
+
+The Frontend will be accessible at [http://localhost:3000](http://localhost:3000)
+
 ### Start new branch
 
 To start a new branch:
