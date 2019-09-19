@@ -4,8 +4,8 @@
 
 ## Check that it is running
 
-`curl http://localhost:8080/ping/ping`
+`curl -G http://localhost:8080/ping --data-urlencode "ping=Hello World"`
 
-The Terminal should recieve a ping.
+The Terminal should recieve a ping with the words "Hello World". Try changing the request to receive different strings from the server.
 
-You can also go on a browser to [http://localhost:8080/ping/ping](http://localhost:8080/ping/ping) and it should say ping.
+You can also go on a browser to [http://localhost:8080/ping](curl -G http://localhost:8080/ping --data-urlencode "ping=Hello World") and it should say ping.
