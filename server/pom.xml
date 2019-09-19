@@ -12,7 +12,6 @@
   <version>0.1.0</version>
 
   <properties>
-    <exec.mainClass>edu.depauw.itap.App</exec.mainClass>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <org.springframework.version>5.1.9.RELEASE</org.springframework.version>
