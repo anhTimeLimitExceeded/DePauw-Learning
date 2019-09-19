@@ -112,3 +112,5 @@ typings/
 .dynamodb/
 
 .vscode
+
+.settings
