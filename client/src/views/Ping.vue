@@ -28,71 +28,70 @@
 </template>
 
 <script>
-import axios from "axios";
-import SockJS from "sockjs-client";
-import Stomp from "webstomp-client";
+import axios from 'axios';
+import SockJS from 'sockjs-client';
+import Stomp from 'webstomp-client';
 
 export default {
-  name: "ping",
+  name: 'ping',
   data: () => ({
-    pingMessage: "",
+    pingMessage: '',
     httpResponses: [],
     socketResponses: [],
-    connected: false
+    connected: false,
   }),
   computed: {
     status() {
       if (this.connected) {
-        return "Connected";
-      } else {
-        return "Not Connected";
+        return 'Connected';
       }
-    }
+      return 'Not Connected';
+    },
   },
   created() {
     this.socket = new SockJS(`${process.env.VUE_APP_API_HOST}/socket/ping`);
     this.stompClient = Stomp.over(this.socket);
     this.stompClient.connect(
       {},
-      frame => {
+      () => {
         this.connected = true;
-        this.stompClient.subscribe("/user/topic/ping", tick => {
+        this.stompClient.subscribe('/user/topic/ping', (tick) => {
           const end = performance.now();
           this.socketResponses.push({
             message: tick.body,
-            time: (end - this.socketStart).toFixed(2)
+            time: (end - this.socketStart).toFixed(2),
           });
         });
       },
-      error => {
+      (error) => {
         console.log(error);
         this.connected = false;
-      }
+      },
     );
   },
   methods: {
-    async sendHTTP(event) {
+    async sendHTTP() {
       const start = performance.now();
       // Send the request to the server and wait for the response.
       const result = await axios.get(`${process.env.VUE_APP_API_HOST}/ping`, {
         params: {
-          ping: this.pingMessage
-        }
+          ping: this.pingMessage,
+        },
       });
       const end = performance.now();
       this.httpResponses.push({
         message: result.data,
-        time: (end - start).toFixed(2)
+        time: (end - start).toFixed(2),
       });
-      this.pingMessage = "";
+      this.pingMessage = '';
     },
-    sendSocket(event) {
+    sendSocket() {
       if (this.stompClient && this.stompClient.connected) {
         this.socketStart = performance.now();
-        this.stompClient.send("/app/ping", this.pingMessage, {});
+        this.stompClient.send('/app/ping', this.pingMessage, {});
       }
-      this.pingMessage = "";
-    }
-  }
+      this.pingMessage = '';
+    },
+  },
 };
 </script>
