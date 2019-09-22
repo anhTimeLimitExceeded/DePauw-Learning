@@ -49,7 +49,7 @@ export default {
     },
   },
   created() {
-    this.socket = new SockJS(`${process.env.VUE_APP_API_HOST}/socket/ping`);
+    this.socket = new SockJS(`${process.env.VUE_APP_API_HOST}/socket`);
     this.socket.onopen = () => {
       this.stompClient = Stomp.over(this.socket, { debug: false });
       this.stompClient.connect(

@@ -1,5 +1,8 @@
 <template>
   <div class="code">
+    <div>
+      <button @click.stop="compile" :disabled="!connected">Compile</button>
+    </div>
     <MonacoEditor
       ref="editor"
       class="editor"
@@ -14,17 +17,45 @@
 
 <script>
 import MonacoEditor from 'vue-monaco';
+import SockJS from 'sockjs-client';
+import Stomp from 'webstomp-client';
+import { debounce } from 'lodash-es';
 
 export default {
   components: {
     MonacoEditor,
   },
+  created() {
+    this.socket = new SockJS(`${process.env.VUE_APP_API_HOST}/socket`);
+    this.socket.onopen = () => {
+      this.stompClient = Stomp.over(this.socket, { debug: false });
+      this.stompClient.connect(
+        {},
+        () => {
+          this.connected = true;
+          this.stompClient.subscribe('/user/topic/compile', (tick) => {
+            this.convertErrors(JSON.parse(tick.body));
+          });
+        },
+        (error) => {
+          console.log(error);
+          this.connected = false;
+        },
+      );
+      this.socket.onopen();
+    };
+  },
   mounted() {
     window.addEventListener('resize', this.onResize);
   },
-
   beforeDestroy() {
     window.removeEventListener('resize', this.onResize);
+
+    if (this.stompClient.connected) {
+      this.stompClient.disconnect();
+    } else if (this.socket.readyState === this.socket.OPEN) {
+      this.socket.close();
+    }
   },
   data() {
     return {
@@ -39,10 +70,16 @@ export default {
       editorOptions: {
         scrollBeyondLastLine: false,
         roundedSelection: false,
-        glyphMargin: true,
+        glyphMargin: false,
       },
       decorations: [],
+
+      connected: false,
     };
+  },
+  watch: {
+    // eslint-disable-next-line func-names
+    code: debounce(function () { this.compile(); }, 500),
   },
   methods: {
     onResize() {
@@ -52,21 +89,9 @@ export default {
       this.monaco = this.$refs.editor.monaco;
       this.loading = false;
       this.editor = this.$refs.editor.getEditor();
-      const markers = [
-        {
-          startLineNumber: 1,
-          startColumn: 4,
-          endLineNumber: 1,
-          endColumn: 8,
-          message: 'Error',
-          severity: this.monaco.MarkerSeverity.Error,
-        },
-      ];
-      this.monaco.editor.setModelMarkers(
-        this.editor.getModel(),
-        'compiler',
-        markers,
-      );
+      /*
+      // Example code to add errors and warnigns to the side of the editor.
+
       const errors = [
         {
           range: new this.monaco.Range(2, 1, 2, 1),
@@ -84,7 +109,30 @@ export default {
         },
       ];
       this.decorations = this.editor.deltaDecorations(this.decorations, errors);
-      this.decorations = this.editor.deltaDecorations(this.decorations, errors);
+      */
+    },
+    compile() {
+      if (this.connected) {
+        this.stompClient.send('/app/compile', JSON.stringify({ sources: [this.code] }), {});
+      }
+    },
+    convertErrors(errors) {
+      const markers = errors.map((error) => {
+        const severity = error.severity === 'WARNING' ? this.monaco.MarkerSeverity.Warning : this.monaco.MarkerSeverity.Error;
+        return {
+          startLineNumber: error.startLineNumber,
+          startColumn: error.startColumnNumber,
+          endLineNumber: error.endLineNumber,
+          endColumn: error.endColumnNumber,
+          message: error.message,
+          severity,
+        };
+      });
+      this.monaco.editor.setModelMarkers(
+        this.editor.getModel(),
+        'compiler',
+        markers,
+      );
     },
   },
 };
@@ -95,6 +143,7 @@ export default {
   text-align: left;
   flex: 1 1 auto;
   display: flex;
+  flex-direction: column;
   min-height: 0;
   min-width: 0;
 }
