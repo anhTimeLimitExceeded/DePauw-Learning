@@ -2,6 +2,7 @@ package edu.depauw.itap.ping;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +20,10 @@ public class PingController {
 
   @MessageMapping("/ping")
   @SendToUser("/topic/ping")
-  public String sendPing(@Payload String ping) {
+  public String sendPing(@Payload String ping, SimpMessageHeaderAccessor headerAccessor) {
+    System.out.print("Session: ");
+    System.out.print(headerAccessor.getSessionId());
+    System.out.print(" Message: ");
     System.out.println(ping);
     return modifyString(ping);
   }

@@ -2,7 +2,7 @@
   <div class="ping">
     <input v-model="pingMessage" placeholder="Message to ping" @keyup.enter="sendHTTP" />
     <button @click.stop="sendHTTP">Send with HTTP</button>
-    <button @click.stop="sendSocket">Send with WebSockets</button>
+    <button @click.stop="sendSocket" :disabled="!connected">Send with WebSockets</button>
     <br />
     <span>Ping through HTTP</span>
     <br />
@@ -50,24 +50,34 @@ export default {
   },
   created() {
     this.socket = new SockJS(`${process.env.VUE_APP_API_HOST}/socket/ping`);
-    this.stompClient = Stomp.over(this.socket);
-    this.stompClient.connect(
-      {},
-      () => {
-        this.connected = true;
-        this.stompClient.subscribe('/user/topic/ping', (tick) => {
-          const end = performance.now();
-          this.socketResponses.push({
-            message: tick.body,
-            time: (end - this.socketStart).toFixed(2),
+    this.socket.onopen = () => {
+      this.stompClient = Stomp.over(this.socket, { debug: false });
+      this.stompClient.connect(
+        {},
+        () => {
+          this.connected = true;
+          this.stompClient.subscribe('/user/topic/ping', (tick) => {
+            const end = performance.now();
+            this.socketResponses.push({
+              message: tick.body,
+              time: (end - this.socketStart).toFixed(2),
+            });
           });
-        });
-      },
-      (error) => {
-        console.log(error);
-        this.connected = false;
-      },
-    );
+        },
+        (error) => {
+          console.log(error);
+          this.connected = false;
+        },
+      );
+      this.socket.onopen();
+    };
+  },
+  beforeDestroy() {
+    if (this.stompClient.connected) {
+      this.stompClient.disconnect();
+    } else if (this.socket.readyState === this.socket.OPEN) {
+      this.socket.close();
+    }
   },
   methods: {
     async sendHTTP() {
@@ -86,7 +96,7 @@ export default {
       this.pingMessage = '';
     },
     sendSocket() {
-      if (this.stompClient && this.stompClient.connected) {
+      if (this.connected) {
         this.socketStart = performance.now();
         this.stompClient.send('/app/ping', this.pingMessage, {});
       }
