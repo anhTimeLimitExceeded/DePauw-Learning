@@ -117,7 +117,7 @@ export default {
       }
     },
     convertErrors(errors) {
-      const markers = errors.map((error) => {
+      const markers = errors.results.map((error) => {
         const severity = error.severity === 'WARNING' ? this.monaco.MarkerSeverity.Warning : this.monaco.MarkerSeverity.Error;
         return {
           startLineNumber: error.startLineNumber,

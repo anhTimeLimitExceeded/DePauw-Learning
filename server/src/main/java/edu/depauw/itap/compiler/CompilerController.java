@@ -1,7 +1,5 @@
 package edu.depauw.itap.compiler;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -17,8 +15,9 @@ public class CompilerController {
 
   @MessageMapping("/compile")
   @SendToUser("/topic/compile")
-  public List<CompilerResult> compile(@Payload CompilerSources sources,
+  public CompilerResponse compile(@Payload CompilerSources sources,
       SimpMessageHeaderAccessor headerAccessor) {
-    return compilerService.compile(headerAccessor.getSessionId(), sources.getSources());
+    return new CompilerResponse()
+        .setResults(compilerService.compile(headerAccessor.getSessionId(), sources.getSources()));
   }
 }

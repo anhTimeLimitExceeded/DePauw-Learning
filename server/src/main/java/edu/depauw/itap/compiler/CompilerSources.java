@@ -9,7 +9,8 @@ public class CompilerSources {
     return sources;
   }
 
-  public void setSources(List<String> sources) {
+  public CompilerSources setSources(List<String> sources) {
     this.sources = sources;
+    return this;
   }
 }
