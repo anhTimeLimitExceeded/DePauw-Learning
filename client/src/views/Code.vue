@@ -1,7 +1,7 @@
 <template>
   <div class="code">
     <div>
-      <button @click.stop="compile" :disabled="!connected">Compile</button>
+      <span>{{ status }} to Java server</span>
     </div>
     <MonacoEditor
       ref="editor"
@@ -76,6 +76,14 @@ export default {
 
       connected: false,
     };
+  },
+  computed: {
+    status() {
+      if (this.connected) {
+        return 'Connected';
+      }
+      return 'Not Connected';
+    },
   },
   watch: {
     // eslint-disable-next-line func-names
