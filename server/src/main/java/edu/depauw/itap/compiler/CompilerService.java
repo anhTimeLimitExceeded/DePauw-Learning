@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 public class CompilerService {
 
   public static File getDirectoryPath(String session) {
-    return new File(Paths.get("").resolve("temp").toAbsolutePath().toString(), session);
+    return new File(Paths.get(".").resolve("temp").toAbsolutePath().toString(), session);
   }
 
   public static String getFullyQualifiedClassName(String source) throws RuntimeException {

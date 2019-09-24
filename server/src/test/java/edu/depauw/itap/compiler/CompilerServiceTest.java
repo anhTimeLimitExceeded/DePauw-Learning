@@ -20,7 +20,7 @@ public class CompilerServiceTest {
 
   private static String INVALID_SOURCE =
       "public class Test {\n" + "public static void main(String[] args) {\n"
-          + "    INVALID(\"Hello World!\");\n" + " }\n" + "}\n";
+          + "    NOT_VALID_FUNCTION(\"Hello World!\");\n" + " }\n" + "}\n";
 
   private static String VALID_SOURCE_WITH_PACKAGE = "package test.moretest;\n" + VALID_SOURCE;
 
@@ -61,15 +61,15 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingSaveFiles() {
-    String source = "public class Test {\n" + "public static void main(String[] args) {\n"
-        + "    System.out.println(\"Hello World!\");\n" + " }\n" + "}\n";
-
-    List<String> sources = Collections.singletonList(source);
+    List<String> sources = Collections.singletonList(VALID_SOURCE);
 
     compilerService.compile("test", sources);
 
     File tempRoot = CompilerService.getDirectoryPath("test");
+    File tempClass = tempRoot.toPath().resolve("Test.class").toFile();
     assertThat(tempRoot).exists();
+    assertThat(tempRoot.listFiles()).isNotEmpty();
+    assertThat(tempClass).exists();
   }
 
   @Test

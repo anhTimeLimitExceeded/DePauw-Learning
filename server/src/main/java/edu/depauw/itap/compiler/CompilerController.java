@@ -17,7 +17,7 @@ public class CompilerController {
   @SendToUser("/topic/compile")
   public CompilerResponse compile(@Payload CompilerSources sources,
       SimpMessageHeaderAccessor headerAccessor) {
-    return new CompilerResponse()
-        .setResults(compilerService.compile(headerAccessor.getSessionId(), sources.getSources()));
+    return new CompilerResponse().setResults(
+        compilerService.compileWithoutSaving(headerAccessor.getSessionId(), sources.getSources()));
   }
 }
