@@ -107,17 +107,7 @@ public class CompilerServiceTest {
   public void teardown() {
     File tempRoot = CompilerService.getDirectoryPath("test").toFile();
     if (tempRoot.exists()) {
-      deleteDirectory(tempRoot);
+      CompilerService.deleteDirectory(tempRoot);
     }
-  }
-
-  private static boolean deleteDirectory(File directoryToBeDeleted) {
-    File[] allContents = directoryToBeDeleted.listFiles();
-    if (allContents != null) {
-      for (File file : allContents) {
-        deleteDirectory(file);
-      }
-    }
-    return directoryToBeDeleted.delete();
   }
 }

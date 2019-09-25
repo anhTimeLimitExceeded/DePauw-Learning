@@ -57,6 +57,16 @@ public class CompilerService {
     return Joiner.on(".").join(className);
   }
 
+  public static boolean deleteDirectory(File directoryToBeDeleted) {
+    File[] allContents = directoryToBeDeleted.listFiles();
+    if (allContents != null) {
+      for (File file : allContents) {
+        deleteDirectory(file);
+      }
+    }
+    return directoryToBeDeleted.delete();
+  }
+
   public List<CompilerResult> compile(String session, List<String> sources) {
 
     Path root = getDirectoryPath(session);
@@ -179,15 +189,5 @@ public class CompilerService {
     public String getName() {
       return this.name;
     }
-  }
-
-  private static boolean deleteDirectory(File directoryToBeDeleted) {
-    File[] allContents = directoryToBeDeleted.listFiles();
-    if (allContents != null) {
-      for (File file : allContents) {
-        deleteDirectory(file);
-      }
-    }
-    return directoryToBeDeleted.delete();
   }
 }
