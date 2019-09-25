@@ -25,6 +25,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+import edu.depauw.itap.util.TestData;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -52,12 +53,9 @@ public class CompilerControllerSocketTest {
 
   @Test
   public void testCompileEndpoint() throws Exception {
-    String source = "public class Test {\n" + "public static void main(String[] args) {\n"
-        + "    System.out.println(\"Hello World!\");\n" + " }\n" + "}\n";
-
     stompSession.subscribe("/user/topic/compile", new CompileStompFrameHandler());
     stompSession.send("/app/compile",
-        new CompilerSources().setSources(Collections.singletonList(source)));
+        new CompilerSources().setSources(Collections.singletonList(TestData.VALID_SOURCE)));
 
     CompilerResponse compilerResults = completableFuture.get(5, TimeUnit.SECONDS);
 
@@ -67,12 +65,9 @@ public class CompilerControllerSocketTest {
 
   @Test
   public void testCompileEndpointBadCode() throws Exception {
-    String source = "public class Test {\n" + "public static void main(String[] args) {\n"
-        + "    System.out.printaln(\"Hello World!\");\n" + " }\n" + "}\n";
-
     stompSession.subscribe("/user/topic/compile", new CompileStompFrameHandler());
     stompSession.send("/app/compile",
-        new CompilerSources().setSources(Collections.singletonList(source)));
+        new CompilerSources().setSources(Collections.singletonList(TestData.INVALID_SOURCE)));
 
     CompilerResponse compilerResults = completableFuture.get(5, TimeUnit.SECONDS);
 

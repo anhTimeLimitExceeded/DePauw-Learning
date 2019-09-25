@@ -15,13 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import edu.depauw.itap.util.TestData;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CompilerControllerTest {
-  private static String VALID_SOURCE =
-      "public class Test {\n" + "public static void main(String[] args) {\n"
-          + "    System.out.println(\"Hello World!\");\n" + " }\n" + "}\n";
-
   @InjectMocks
   CompilerController compilerController;
 
@@ -37,7 +34,7 @@ public class CompilerControllerTest {
     when(compilerService.compileWithoutSaving(anyString(), any())).thenReturn(new ArrayList<>());
 
     CompilerSources compilerSources =
-        new CompilerSources().setSources(Collections.singletonList(VALID_SOURCE));
+        new CompilerSources().setSources(Collections.singletonList(TestData.VALID_SOURCE));
 
     CompilerResponse response = compilerController.compile(compilerSources, headerAccessor);
 
