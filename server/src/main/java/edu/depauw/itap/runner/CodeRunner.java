@@ -29,6 +29,7 @@ import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.StepRequest;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import edu.depauw.itap.compiler.CompilerResponse;
 import edu.depauw.itap.compiler.CompilerResult;
 import edu.depauw.itap.compiler.CompilerService;
 
@@ -85,7 +86,11 @@ public class CodeRunner implements Runnable {
             .map(Map.Entry::getValue).collect(Collectors.toList()));
 
     if (!compilingResults.isEmpty()) {
-      return;
+      CompilerResponse response = new CompilerResponse().setResults(compilingResults);
+      this.messagingTemplate.convertAndSendToUser(this.session, "/topic/compile", response,
+          messageHeaders);
+      throw new RuntimeException(compilingResults.stream().map((result) -> result.getMessage())
+          .collect(Collectors.toList()).toString());
     }
 
     /*

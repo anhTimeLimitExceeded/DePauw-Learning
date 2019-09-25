@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -20,9 +21,11 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import edu.depauw.itap.compiler.CompilerResponse;
 import edu.depauw.itap.compiler.CompilerService;
 import edu.depauw.itap.util.TestData;
 
@@ -106,29 +109,49 @@ public class CodeRunnerTest {
     codeRunner.setSources(sourceList);
     codeRunner.run();
 
-    inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
-        eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null && arg.getOutput().equals("0\n")),
+    for (int i = 0; i < 5; i++) {
+      final int n = i;
+      inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
+          eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
+              && arg.getOutput().equals(Integer.toString(n) + "\n")),
+          same(messageHeaders));
+    }
+  }
+
+  @Test
+  public void testInvalidCode() {
+    when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
+
+    sourceList.add(TestData.INVALID_SOURCE);
+    codeRunner.setSources(sourceList);
+    try {
+      codeRunner.run();
+    } catch (RuntimeException e) {
+      // Ignore as it is expected
+    }
+
+    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"), eq("/topic/compile"),
+        argThat((CompilerResponse arg) -> arg.getResults() != null && !arg.getResults().isEmpty()),
         same(messageHeaders));
+  }
+
+  @Test
+  public void testMaliciousCode() {
+    when(clock.instant()).thenAnswer((InvocationOnMock invocation) -> Instant.now());
+
+    InOrder inOrder = Mockito.inOrder(messagingTemplate);
+
+    sourceList.add(TestData.MALICIOUS_SOURCE);
+    codeRunner.setSources(sourceList);
+    codeRunner.run();
 
     inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
-        eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null && arg.getOutput().equals("1\n")),
+        eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
+            && arg.getOutput().equals("Running Test")),
         same(messageHeaders));
-
-    inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
-        eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null && arg.getOutput().equals("2\n")),
-        same(messageHeaders));
-
-    inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
-        eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null && arg.getOutput().equals("3\n")),
-        same(messageHeaders));
-
-    inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
-        eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null && arg.getOutput().equals("4\n")),
+    // Check that there was no output after writing and reading a file.
+    inOrder.verify(messagingTemplate, never()).convertAndSendToUser(eq("test"),
+        eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null),
         same(messageHeaders));
   }
 
