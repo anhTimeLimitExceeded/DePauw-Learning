@@ -1,5 +1,9 @@
 package edu.depauw.itap.runner;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class CodeRunnerStatus {
     private String output;
     private String errorOutput;

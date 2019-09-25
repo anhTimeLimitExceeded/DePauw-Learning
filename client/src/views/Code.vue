@@ -25,14 +25,14 @@
 </template>
 
 <script>
-import MonacoEditor from "vue-monaco";
-import SockJS from "sockjs-client";
-import Stomp from "webstomp-client";
-import { debounce } from "lodash-es";
+import MonacoEditor from 'vue-monaco';
+import SockJS from 'sockjs-client';
+import Stomp from 'webstomp-client';
+import { debounce } from 'lodash-es';
 
 export default {
   components: {
-    MonacoEditor
+    MonacoEditor,
   },
   created() {
     this.socket = new SockJS(`${process.env.VUE_APP_API_HOST}/socket`);
@@ -42,10 +42,10 @@ export default {
         {},
         () => {
           this.connected = true;
-          this.stompClient.subscribe("/user/topic/compile", tick => {
+          this.stompClient.subscribe('/user/topic/compile', (tick) => {
             this.convertErrors(JSON.parse(tick.body));
           });
-          this.stompClient.subscribe("/user/topic/runner/status", tick => {
+          this.stompClient.subscribe('/user/topic/runner/status', (tick) => {
             const body = JSON.parse(tick.body);
             if (body.output) {
               this.remoteOutput += body.output;
@@ -59,19 +59,19 @@ export default {
             console.log(tick.body);
           });
         },
-        error => {
+        (error) => {
           console.log(error);
           this.connected = false;
-        }
+        },
       );
       this.socket.onopen();
     };
   },
   mounted() {
-    window.addEventListener("resize", this.onResize);
+    window.addEventListener('resize', this.onResize);
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.onResize);
+    window.removeEventListener('resize', this.onResize);
 
     if (this.stompClient.connected) {
       this.stompClient.disconnect();
@@ -83,37 +83,37 @@ export default {
     return {
       loading: true,
       code: [
-        "public class Test {",
-        " public static void main(String[] args) {",
+        'public class Test {',
+        ' public static void main(String[] args) {',
         '    System.out.println("Hello World!");',
-        " }",
-        "}"
-      ].join("\n"),
-      remoteOutput: "",
-      remoteStatus: "STOPPED",
+        ' }',
+        '}',
+      ].join('\n'),
+      remoteOutput: '',
+      remoteStatus: 'STOPPED',
       editorOptions: {
         scrollBeyondLastLine: false,
         roundedSelection: false,
-        glyphMargin: false
+        glyphMargin: false,
       },
       decorations: [],
 
-      connected: false
+      connected: false,
     };
   },
   computed: {
     status() {
       if (this.connected) {
-        return "Connected";
+        return 'Connected';
       }
-      return "Not Connected";
-    }
+      return 'Not Connected';
+    },
   },
   watch: {
     // eslint-disable-next-line func-names
-    code: debounce(function() {
+    code: debounce(function () {
       this.compile();
-    }, 500)
+    }, 500),
   },
   methods: {
     onResize() {
@@ -148,45 +148,44 @@ export default {
     compile() {
       if (this.connected) {
         this.stompClient.send(
-          "/app/compile",
+          '/app/compile',
           JSON.stringify({ sources: [this.code] }),
-          {}
+          {},
         );
       }
     },
     run() {
       if (this.connected) {
         this.stompClient.send(
-          "/app/run",
+          '/app/run',
           JSON.stringify({ sources: [this.code] }),
-          {}
+          {},
         );
-        this.remoteOutput = "";
-        console.log("Sent request");
+        this.remoteOutput = '';
+        console.log('Sent request');
       }
     },
     convertErrors(errors) {
-      const markers = errors.results.map(error => {
-        const severity =
-          error.severity === "WARNING"
-            ? this.monaco.MarkerSeverity.Warning
-            : this.monaco.MarkerSeverity.Error;
+      const markers = errors.results.map((error) => {
+        const severity = error.severity === 'WARNING'
+          ? this.monaco.MarkerSeverity.Warning
+          : this.monaco.MarkerSeverity.Error;
         return {
           startLineNumber: error.startLineNumber,
           startColumn: error.startColumnNumber,
           endLineNumber: error.endLineNumber,
           endColumn: error.endColumnNumber,
           message: error.message,
-          severity
+          severity,
         };
       });
       this.monaco.editor.setModelMarkers(
         this.editor.getModel(),
-        "compiler",
-        markers
+        'compiler',
+        markers,
       );
-    }
-  }
+    },
+  },
 };
 </script>
 
