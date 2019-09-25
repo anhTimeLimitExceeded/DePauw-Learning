@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,8 +80,8 @@ public class CodeRunnerControllerSocketTest {
       return result.getErrorOutput() != null;
     });
 
-    assertThat(results.stream().filter((result) -> result.getStatus().equals(RunnerStatus.STOPPED)))
-        .hasSize(1);
+    assertThat(results.stream().filter((result) -> result.getStatus().equals(RunnerStatus.STOPPED))
+        .collect(Collectors.toList())).hasSize(1);
   }
 
   private class StatusStompFrameHandler implements StompFrameHandler {
