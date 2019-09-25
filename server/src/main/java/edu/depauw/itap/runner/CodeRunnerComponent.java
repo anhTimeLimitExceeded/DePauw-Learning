@@ -1,6 +1,5 @@
 package edu.depauw.itap.runner;
 
-import java.time.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -17,16 +16,15 @@ public class CodeRunnerComponent {
   private CompilerService compilerService;
 
   @Autowired
+  private CodeRunnerService codeRunnerService;
+
+  @Autowired
   private SimpMessagingTemplate messagingTemplate;
 
   @MessageMapping("/run")
-  public void compile(@Payload CompilerSources sources, SimpMessageHeaderAccessor headerAccessor) {
-    CodeRunner codeRunner =
-        new CodeRunner(headerAccessor.getSessionId(), headerAccessor.getMessageHeaders(),
-            compilerService, messagingTemplate, Clock.systemDefaultZone());
-    codeRunner.setSources(sources.getSources());
-    new Thread(codeRunner).start();
+  public void runCode(@Payload CompilerSources sources, SimpMessageHeaderAccessor headerAccessor) {
+    codeRunnerService.createThread(headerAccessor.getSessionId(), sources.getSources(),
+        headerAccessor.getMessageHeaders(), compilerService, messagingTemplate);
     System.out.println("Received request: " + headerAccessor.getSessionId());
-    return;
   }
 }
