@@ -44,7 +44,7 @@ public class CompilerService {
       className.add(m.group(1));
     }
 
-    r = Pattern.compile("^\\s*(?:public\\s+)?class\\s+([_a-zA-Z][a-zA-Z0-9]+)\\s*\\{",
+    r = Pattern.compile("\\s*(?:public\\s+)?class\\s+([_a-zA-Z][a-zA-Z0-9]+)\\s*\\{",
         Pattern.MULTILINE);
     m = r.matcher(source);
 
