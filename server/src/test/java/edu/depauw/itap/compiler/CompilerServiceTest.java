@@ -45,7 +45,7 @@ public class CompilerServiceTest {
 
     compilerService.compileWithoutSaving("test", sources);
 
-    File tempRoot = CompilerService.getDirectoryPath("test");
+    File tempRoot = CompilerService.getDirectoryPath("test").toFile();
     assertThat(tempRoot).doesNotExist();
   }
 
@@ -65,7 +65,7 @@ public class CompilerServiceTest {
 
     compilerService.compile("test", sources);
 
-    File tempRoot = CompilerService.getDirectoryPath("test");
+    File tempRoot = CompilerService.getDirectoryPath("test").toFile();
     File tempClass = tempRoot.toPath().resolve("Test.class").toFile();
     assertThat(tempRoot).exists();
     assertThat(tempRoot.listFiles()).isNotEmpty();
@@ -105,7 +105,7 @@ public class CompilerServiceTest {
 
   @After
   public void teardown() {
-    File tempRoot = CompilerService.getDirectoryPath("test");
+    File tempRoot = CompilerService.getDirectoryPath("test").toFile();
     if (tempRoot.exists()) {
       deleteDirectory(tempRoot);
     }

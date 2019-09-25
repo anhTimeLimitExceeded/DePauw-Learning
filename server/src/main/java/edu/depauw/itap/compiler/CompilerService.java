@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +29,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class CompilerService {
 
-  public static File getDirectoryPath(String session) {
-    return new File(Paths.get(".").resolve("temp").toAbsolutePath().toString(), session);
+  public static Path getDirectoryPath(String session) {
+    return Paths.get(".").resolve("temp").resolve(session).normalize().toAbsolutePath();
   }
 
   public static String getFullyQualifiedClassName(String source) throws RuntimeException {
@@ -58,8 +59,8 @@ public class CompilerService {
 
   public List<CompilerResult> compile(String session, List<String> sources) {
 
-    File root = getDirectoryPath(session);
-    root.mkdirs();
+    Path root = getDirectoryPath(session);
+    root.toFile().mkdirs();
 
     Map<String, String> classNameToSource;
 
@@ -67,7 +68,7 @@ public class CompilerService {
       classNameToSource = sources.stream().collect(
           Collectors.toMap(source -> getFullyQualifiedClassName(source), Function.identity()));
     } catch (RuntimeException e) {
-      return new ArrayList<>();
+      throw new RuntimeException(e);
     }
 
     List<JavaFileObject> compilationUnits = classNameToSource.entrySet().stream().map((entry) -> {
@@ -81,7 +82,7 @@ public class CompilerService {
     List<String> compilerOptions = new ArrayList<>();
 
     compilerOptions.add("-d");
-    compilerOptions.add(root.toPath().toString());
+    compilerOptions.add(root.toString());
     compilerOptions.add("-g");
 
     // Compile source file.
@@ -122,9 +123,9 @@ public class CompilerService {
   public List<CompilerResult> compileWithoutSaving(String session, List<String> sources) {
     List<CompilerResult> results = compile(session, sources);
 
-    File root = getDirectoryPath(session);
+    Path root = getDirectoryPath(session);
 
-    deleteDirectory(root);
+    deleteDirectory(root.toFile());
 
     return results;
   }
