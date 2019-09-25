@@ -88,16 +88,13 @@ public class CodeRunner implements Runnable {
       return;
     }
 
-    System.out.println(sourceClass);
-    System.out.println(classRoot.toString());
-
     /*
      * Prepare connector, set class to debug & launch VM.
      */
     LaunchingConnector launchingConnector = Bootstrap.virtualMachineManager().defaultConnector();
     Map<String, Connector.Argument> env = launchingConnector.defaultArguments();
     env.get("main").setValue(sourceClass);
-    env.get("options").setValue("-cp \"" + classRoot.toString() + "\"");
+    env.get("options").setValue("-Djava.security.manager -cp \"" + classRoot.toString() + "\"");
     VirtualMachine vm;
     try {
       vm = launchingConnector.launch(env);
@@ -117,6 +114,7 @@ public class CodeRunner implements Runnable {
 
     // Get streams to retrieve the output of the VM
     InputStreamReader reader = new InputStreamReader(vm.process().getInputStream());
+    InputStreamReader errorReader = new InputStreamReader(vm.process().getErrorStream());
     ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
 
     // Set up the variable to keep track of the time that the VM has run for
@@ -172,16 +170,32 @@ public class CodeRunner implements Runnable {
           vm.resume();
         }
 
+        CodeRunnerStatus status = null;
+
         if (reader.ready()) {
           while (reader.ready()) {
             outputBuffer.write((char) reader.read());
           }
-          CodeRunnerStatus status = new CodeRunnerStatus().setOutput(outputBuffer.toString())
-              .setStatus(RunnerStatus.RUNNING);
+          status = new CodeRunnerStatus().setOutput(outputBuffer.toString());
+          outputBuffer.reset();
+        }
+
+        if (errorReader.ready()) {
+          while (errorReader.ready()) {
+            outputBuffer.write((char) errorReader.read());
+          }
+          if (status == null) {
+            status = new CodeRunnerStatus();
+          }
+          status.setErrorOutput(outputBuffer.toString());
+          outputBuffer.reset();
+        }
+
+        if (status != null) {
+          status.setStatus(RunnerStatus.RUNNING);
           this.messagingTemplate.convertAndSendToUser(this.session, "/topic/runner/status", status,
               messageHeaders);
         }
-
 
         executionTime =
             executionTime.plusMillis(Duration.between(startTime, currentTime).toMillis());
