@@ -56,7 +56,6 @@ export default {
             if (body.status) {
               this.remoteStatus = body.status;
             }
-            console.log(tick.body);
           });
         },
         (error) => {
