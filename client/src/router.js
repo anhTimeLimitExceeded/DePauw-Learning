@@ -24,5 +24,10 @@ export default new Router({
     name: 'ping',
     component: () => import(/* webpackChunkName: "ping" */ './views/Ping.vue'),
   },
+  {
+    path: '/code',
+    name: 'code',
+    component: () => import(/* webpackChunkName: "code" */ './views/Code.vue'),
+  },
   ],
 });
