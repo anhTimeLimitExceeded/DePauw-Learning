@@ -1,12 +1,15 @@
-package edu.depauw.itap.compiler;
+package edu.depauw.itap.runner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,18 +23,19 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
+import edu.depauw.itap.compiler.CompilerSources;
 import edu.depauw.itap.util.TestData;
 import edu.depauw.itap.util.TestSocket;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CompilerControllerSocketTest {
+public class CodeRunnerControllerSocketTest {
   @LocalServerPort
   int randomPort;
 
   private StompSession stompSession;
 
-  private CompletableFuture<CompilerResponse> completableFuture;
+  private CompletableFuture<CodeRunnerStatus> completableFuture;
 
   @Before
   public void setup() throws InterruptedException, ExecutionException, TimeoutException {
@@ -48,46 +52,47 @@ public class CompilerControllerSocketTest {
   }
 
   @Test
-  public void testCompileEndpoint() throws Exception {
-    stompSession.subscribe("/user/topic/compile", new CompileStompFrameHandler());
+  public void testRunCode() throws Exception {
+    stompSession.subscribe("/user/topic/runner/status", new StatusStompFrameHandler());
 
-    stompSession.send("/app/compile",
+    stompSession.send("/app/run",
         new CompilerSources().setSources(Collections.singletonList(TestData.VALID_SOURCE)));
 
-    CompilerResponse compilerResults = completableFuture.get(5, TimeUnit.SECONDS);
+    CodeRunnerStatus status = null;
+    List<CodeRunnerStatus> results = new ArrayList<>();
 
-    assertThat(compilerResults).isNotNull();
-    assertThat(compilerResults.getResults()).isEmpty();
+    try {
+      while (true) {
+        status = completableFuture.get(3, TimeUnit.SECONDS);
+        completableFuture = new CompletableFuture<>();
+        results.add(status);
+      }
+    } catch (TimeoutException e) {
+      // Ignore
+    }
+
+    assertThat(results).isNotEmpty();
+    assertThat(results.stream()).anyMatch((result) -> {
+      return result.getOutput().equals("Hello World!\n");
+    });
+
+    assertThat(results.stream()).noneMatch((result) -> {
+      return result.getErrorOutput() != null;
+    });
+
+    assertThat(results.stream().filter((result) -> result.getStatus().equals(RunnerStatus.STOPPED))
+        .collect(Collectors.toList())).hasSize(1);
   }
 
-  @Test
-  public void testCompileEndpointBadCode() throws Exception {
-    stompSession.subscribe("/user/topic/compile", new CompileStompFrameHandler());
-    stompSession.send("/app/compile",
-        new CompilerSources().setSources(Collections.singletonList(TestData.INVALID_SOURCE)));
-
-    CompilerResponse compilerResults = completableFuture.get(5, TimeUnit.SECONDS);
-
-    assertThat(compilerResults).isNotNull();
-    assertThat(compilerResults.getResults()).isNotEmpty();
-    assertThat(compilerResults.getResults().get(0).getClassName()).isEqualTo("Test");
-    assertThat(compilerResults.getResults().get(0).getMessage()).isNotEmpty();
-    assertThat(compilerResults.getResults().get(0).getSeverity()).isEqualTo("ERROR");
-    assertThat(compilerResults.getResults().get(0).getStartLineNumber()).isGreaterThan(0);
-    assertThat(compilerResults.getResults().get(0).getStartColumnNumber()).isGreaterThan(0);
-    assertThat(compilerResults.getResults().get(0).getEndLineNumber()).isGreaterThan(0);
-    assertThat(compilerResults.getResults().get(0).getEndColumnNumber()).isGreaterThan(0);
-  }
-
-  private class CompileStompFrameHandler implements StompFrameHandler {
+  private class StatusStompFrameHandler implements StompFrameHandler {
     @Override
     public Type getPayloadType(StompHeaders stompHeaders) {
-      return CompilerResponse.class;
+      return CodeRunnerStatus.class;
     }
 
     @Override
     public void handleFrame(StompHeaders stompHeaders, Object o) {
-      completableFuture.complete((CompilerResponse) o);
+      completableFuture.complete((CodeRunnerStatus) o);
     }
   }
 }

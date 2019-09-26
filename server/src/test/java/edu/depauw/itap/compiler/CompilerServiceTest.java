@@ -9,20 +9,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import edu.depauw.itap.util.TestData;
 
 @RunWith(JUnit4.class)
 public class CompilerServiceTest {
   CompilerService compilerService;
-
-  private static String VALID_SOURCE =
-      "public class Test {\n" + "public static void main(String[] args) {\n"
-          + "    System.out.println(\"Hello World!\");\n" + " }\n" + "}\n";
-
-  private static String INVALID_SOURCE =
-      "public class Test {\n" + "public static void main(String[] args) {\n"
-          + "    NOT_VALID_FUNCTION(\"Hello World!\");\n" + " }\n" + "}\n";
-
-  private static String VALID_SOURCE_WITH_PACKAGE = "package test.moretest;\n" + VALID_SOURCE;
 
   @Before
   public void setup() {
@@ -31,7 +22,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingWithoutSaving() {
-    List<String> sources = Collections.singletonList(VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
 
     List<CompilerResult> results = compilerService.compileWithoutSaving("test", sources);
 
@@ -41,7 +32,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingWithoutSavingDoesNotSaveFiles() {
-    List<String> sources = Collections.singletonList(VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
 
     compilerService.compileWithoutSaving("test", sources);
 
@@ -51,7 +42,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompiling() {
-    List<String> sources = Collections.singletonList(VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
 
     List<CompilerResult> results = compilerService.compile("test", sources);
 
@@ -61,7 +52,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingSaveFiles() {
-    List<String> sources = Collections.singletonList(VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
 
     compilerService.compile("test", sources);
 
@@ -74,7 +65,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingInvalidSource() {
-    List<String> sources = Collections.singletonList(INVALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.INVALID_SOURCE);
 
     List<CompilerResult> results = compilerService.compile("test", sources);
 
@@ -91,14 +82,15 @@ public class CompilerServiceTest {
 
   @Test
   public void testGetClassName() {
-    String className = CompilerService.getFullyQualifiedClassName(VALID_SOURCE);
+    String className = CompilerService.getFullyQualifiedClassName(TestData.VALID_SOURCE);
 
     assertThat(className).isEqualTo("Test");
   }
 
   @Test
   public void testGetClassNameWithPackage() {
-    String className = CompilerService.getFullyQualifiedClassName(VALID_SOURCE_WITH_PACKAGE);
+    String className =
+        CompilerService.getFullyQualifiedClassName(TestData.VALID_SOURCE_WITH_PACKAGE);
 
     assertThat(className).isEqualTo("test.moretest.Test");
   }
@@ -107,17 +99,7 @@ public class CompilerServiceTest {
   public void teardown() {
     File tempRoot = CompilerService.getDirectoryPath("test").toFile();
     if (tempRoot.exists()) {
-      deleteDirectory(tempRoot);
+      CompilerService.deleteDirectory(tempRoot);
     }
-  }
-
-  private static boolean deleteDirectory(File directoryToBeDeleted) {
-    File[] allContents = directoryToBeDeleted.listFiles();
-    if (allContents != null) {
-      for (File file : allContents) {
-        deleteDirectory(file);
-      }
-    }
-    return directoryToBeDeleted.delete();
   }
 }

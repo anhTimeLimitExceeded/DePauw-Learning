@@ -70,6 +70,11 @@
       <version>3.13.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.olivergondza</groupId>
+      <artifactId>maven-jdk-tools-wrapper</artifactId>
+      <version>0.1</version>
+    </dependency>
   </dependencies>
 
   <build>

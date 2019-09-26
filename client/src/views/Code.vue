@@ -2,16 +2,25 @@
   <div class="code">
     <div>
       <span>{{ status }} to Java server</span>
+      <button @click.stop="run">Run code</button>
     </div>
-    <MonacoEditor
-      ref="editor"
-      class="editor"
-      v-model="code"
-      language="java"
-      theme="vs-dark"
-      :options="editorOptions"
-      @editorDidMount="onMountedEditor"
-    />
+    <div class="editor-wrapper">
+      <MonacoEditor
+        ref="editor"
+        class="editor"
+        v-model="code"
+        language="java"
+        theme="vs-dark"
+        :options="editorOptions"
+        @editorDidMount="onMountedEditor"
+      />
+    </div>
+    <div class="output">
+      <div class="status">
+        <span>Status: {{ remoteStatus }}</span>
+      </div>
+      <textarea :readonly="true" :value="remoteOutput"></textarea>
+    </div>
   </div>
 </template>
 
@@ -35,6 +44,18 @@ export default {
           this.connected = true;
           this.stompClient.subscribe('/user/topic/compile', (tick) => {
             this.convertErrors(JSON.parse(tick.body));
+          });
+          this.stompClient.subscribe('/user/topic/runner/status', (tick) => {
+            const body = JSON.parse(tick.body);
+            if (body.output) {
+              this.remoteOutput += body.output;
+            }
+            if (body.errorOutput) {
+              this.remoteOutput += body.errorOutput;
+            }
+            if (body.status) {
+              this.remoteStatus = body.status;
+            }
           });
         },
         (error) => {
@@ -67,6 +88,8 @@ export default {
         ' }',
         '}',
       ].join('\n'),
+      remoteOutput: '',
+      remoteStatus: 'STOPPED',
       editorOptions: {
         scrollBeyondLastLine: false,
         roundedSelection: false,
@@ -87,7 +110,9 @@ export default {
   },
   watch: {
     // eslint-disable-next-line func-names
-    code: debounce(function () { this.compile(); }, 500),
+    code: debounce(function () {
+      this.compile();
+    }, 500),
   },
   methods: {
     onResize() {
@@ -121,12 +146,29 @@ export default {
     },
     compile() {
       if (this.connected) {
-        this.stompClient.send('/app/compile', JSON.stringify({ sources: [this.code] }), {});
+        this.stompClient.send(
+          '/app/compile',
+          JSON.stringify({ sources: [this.code] }),
+          {},
+        );
+      }
+    },
+    run() {
+      if (this.connected) {
+        this.stompClient.send(
+          '/app/run',
+          JSON.stringify({ sources: [this.code] }),
+          {},
+        );
+        this.remoteOutput = '';
+        console.log('Sent request');
       }
     },
     convertErrors(errors) {
       const markers = errors.results.map((error) => {
-        const severity = error.severity === 'WARNING' ? this.monaco.MarkerSeverity.Warning : this.monaco.MarkerSeverity.Error;
+        const severity = error.severity === 'WARNING'
+          ? this.monaco.MarkerSeverity.Warning
+          : this.monaco.MarkerSeverity.Error;
         return {
           startLineNumber: error.startLineNumber,
           startColumn: error.startColumnNumber,
@@ -156,10 +198,28 @@ export default {
   min-width: 0;
 }
 
+.editor-wrapper {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+}
+
 .editor {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
+}
+
+.output .status {
+  display: flex;
+  flex-direction: row;
+}
+
+.output textarea {
+  resize: none;
+  height: 10vh;
+  width: 100%;
 }
 
 ::v-deep .errorIcon {
