@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,6 +25,8 @@ public class CodeRunnerService {
 
   private final Thread queueRunner;
 
+  private boolean running = true;
+
   public CodeRunnerService() {
     this.sessionToCodeRunner = new HashMap<>();
     this.sessionToThread = new HashMap<>();
@@ -31,11 +35,13 @@ public class CodeRunnerService {
     this.queueRunner = new Thread(new Runnable() {
       @Override
       public void run() {
-        while (true) {
+        while (running) {
           try {
-            Thread currentThread = threadQueue.poll();
-            currentThread.start();
-            currentThread.join();
+            Thread currentThread = threadQueue.poll(500, TimeUnit.MILLISECONDS);
+            if (currentThread != null) {
+              currentThread.start();
+              currentThread.join();
+            }
           } catch (InterruptedException e) {
             e.printStackTrace();
           }
@@ -46,7 +52,7 @@ public class CodeRunnerService {
   }
 
   public boolean anyRunning() {
-    return sessionToThread.entrySet().stream().map(Map.Entry::getValue)
+    return !threadQueue.isEmpty() || sessionToThread.entrySet().stream().map(Map.Entry::getValue)
         .anyMatch((thread) -> thread.isAlive());
   }
 
@@ -57,6 +63,11 @@ public class CodeRunnerService {
     runner.setSources(sources);
     Thread runnerThread = new Thread(runner);
     sessionToThread.put(session, runnerThread);
+    try {
+      threadQueue.put(runnerThread);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   public void removeSession(String session) {
@@ -67,5 +78,10 @@ public class CodeRunnerService {
         threadQueue.remove(sessionThread);
       }
     }
+  }
+
+  @PreDestroy
+  public void cleanUp() {
+    this.running = false;
   }
 }
