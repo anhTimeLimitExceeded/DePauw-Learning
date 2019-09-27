@@ -22,6 +22,11 @@ public class CodeRunnerService {
     this.sessionToThread = new HashMap<>();
   }
 
+  public boolean anyRunning() {
+    return sessionToThread.entrySet().stream().map(Map.Entry::getValue)
+        .anyMatch((thread) -> thread.isAlive());
+  }
+
   public void createThread(String session, List<String> sources, MessageHeaders messageHeaders,
       CompilerService compilerService, SimpMessagingTemplate messagingTemplate) {
     CodeRunner runner = sessionToCodeRunner.computeIfAbsent(session, (k) -> codeRunnerFactory

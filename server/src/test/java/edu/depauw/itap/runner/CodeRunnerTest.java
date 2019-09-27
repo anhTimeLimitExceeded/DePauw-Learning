@@ -43,18 +43,21 @@ public class CodeRunnerTest {
   @Mock
   private Clock clock;
 
-  private CodeRunner codeRunner;
+  private CodeRunnerImpl codeRunner;
 
   private List<String> sourceList;
 
   @Before
   public void setup() {
     sourceList = new ArrayList<>();
-    codeRunner = new CodeRunner("test", messageHeaders, compilerService, messagingTemplate, clock);
+    codeRunner =
+        new CodeRunnerImpl("test", messageHeaders, compilerService, messagingTemplate, clock);
   }
 
   @Test
   public void testCompilesCode() {
+    when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
+
     sourceList.add(TestData.VALID_SOURCE);
     codeRunner.setSources(sourceList);
     codeRunner.run();

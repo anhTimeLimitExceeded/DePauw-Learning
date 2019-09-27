@@ -15,6 +15,6 @@ public class CodeRunnerFactory {
 
   public CodeRunner createCodeRunner(String session, MessageHeaders messageHeaders,
       CompilerService compilerService, SimpMessagingTemplate messagingTemplate) {
-    return new CodeRunner(session, messageHeaders, compilerService, messagingTemplate, clock);
+    return new CodeRunnerImpl(session, messageHeaders, compilerService, messagingTemplate, clock);
   }
 }
