@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +54,6 @@ public class CodeRunnerServiceTest {
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
         same(compilerService), same(messagingTemplate));
     verify(codeRunner, times(1)).setSources(same(sourceList));
-    verify(codeRunner, times(1)).run();
+    verify(codeRunner, timeout(1000).times(1)).run();
   }
 }

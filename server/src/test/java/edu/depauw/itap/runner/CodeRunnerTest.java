@@ -54,6 +54,8 @@ public class CodeRunnerTest {
 
   @Test
   public void testCompilesCode() {
+    when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
+
     sourceList.add(TestData.VALID_SOURCE);
     codeRunner.setSources(sourceList);
     codeRunner.run();
