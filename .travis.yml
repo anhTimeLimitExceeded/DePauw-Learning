@@ -1,17 +1,22 @@
 matrix:
   include:
-    - language: java
-      jdk: oraclejdk12
-      before_script:
+    - before_script:
         - cd server
+      language: java
+      jdk: oraclejdk12
+      cache:
+        directories:
+          - $HOME/.m2
 
     - language: node_js
       node_js:
         - 12
-      cache:
-        directories:
-          - node_modules
-      before_script:
+      install:
         - cd client
+        - npm install
       script:
         - npm run test:unit
+      cache:
+        directories:
+          - $HOME/.npm
+          - $TRAVIS_BUILD_DIR/client/node_modules
