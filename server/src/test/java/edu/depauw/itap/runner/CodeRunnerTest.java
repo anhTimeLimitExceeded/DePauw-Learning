@@ -122,8 +122,6 @@ public class CodeRunnerTest {
 
   @Test
   public void testInvalidCode() {
-    when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
-
     sourceList.add(TestData.INVALID_SOURCE);
     codeRunner.setSources(sourceList);
     try {
