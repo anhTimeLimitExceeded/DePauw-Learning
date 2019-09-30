@@ -42,7 +42,7 @@ public class CodeRunnerServiceTest {
 
   @Test
   public void testCreateThread() {
-    sourceList.add(TestData.VALID_SOURCE);
+    sourceList.add(TestData.createValidSource());
 
     CodeRunner codeRunner = mock(CodeRunnerImpl.class);
 
@@ -60,7 +60,7 @@ public class CodeRunnerServiceTest {
 
   @Test
   public void testAnyThreadRunning() {
-    sourceList.add(TestData.VALID_SOURCE);
+    sourceList.add(TestData.createValidSource());
 
     CodeRunner codeRunner = spy(new FakeCodeRunner());
 

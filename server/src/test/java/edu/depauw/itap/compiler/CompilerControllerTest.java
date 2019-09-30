@@ -31,7 +31,7 @@ public class CompilerControllerTest {
     when(compilerService.compileWithoutSaving(anyString(), any())).thenReturn(new ArrayList<>());
 
     CompilerSources compilerSources =
-        new CompilerSources().setSources(Collections.singletonList(TestData.VALID_SOURCE));
+        new CompilerSources().setSources(Collections.singletonList(TestData.createValidSource()));
 
     CompilerResponse response = compilerController.compile(compilerSources, headerAccessor);
 

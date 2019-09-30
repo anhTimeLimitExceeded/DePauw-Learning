@@ -8,7 +8,6 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.Instant;
@@ -58,7 +57,7 @@ public class CodeRunnerTest {
   public void testCompilesCode() {
     when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
 
-    sourceList.add(TestData.VALID_SOURCE);
+    sourceList.add(TestData.createValidSource());
     codeRunner.setSources(sourceList);
     codeRunner.run();
 
@@ -72,7 +71,7 @@ public class CodeRunnerTest {
     // Check that the calls were made in order
     InOrder inOrder = Mockito.inOrder(messagingTemplate);
 
-    sourceList.add(TestData.VALID_SOURCE);
+    sourceList.add(TestData.createValidSource());
     codeRunner.setSources(sourceList);
     codeRunner.run();
 
@@ -86,14 +85,14 @@ public class CodeRunnerTest {
         argThat((CodeRunnerStatus arg) -> arg.getStatus().equals(RunnerStatus.STOPPED)),
         same(messageHeaders));
 
-    verifyNoMoreInteractions(messagingTemplate);
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void testSendOutput() {
     when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
 
-    sourceList.add(TestData.VALID_SOURCE);
+    sourceList.add(TestData.createValidSource());
     codeRunner.setSources(sourceList);
     codeRunner.run();
 
@@ -109,7 +108,7 @@ public class CodeRunnerTest {
 
     InOrder inOrder = Mockito.inOrder(messagingTemplate);
 
-    sourceList.add(TestData.FOR_LOOP_SOURCE);
+    sourceList.add(TestData.getForLoopSource());
     codeRunner.setSources(sourceList);
     codeRunner.run();
 
@@ -126,7 +125,7 @@ public class CodeRunnerTest {
   public void testInvalidCode() {
     when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
 
-    sourceList.add(TestData.INVALID_SOURCE);
+    sourceList.add(TestData.getInvalidSource());
     codeRunner.setSources(sourceList);
     try {
       codeRunner.run();
@@ -145,7 +144,7 @@ public class CodeRunnerTest {
 
     InOrder inOrder = Mockito.inOrder(messagingTemplate);
 
-    sourceList.add(TestData.MALICIOUS_SOURCE);
+    sourceList.add(TestData.getMaliciousSource());
     codeRunner.setSources(sourceList);
     codeRunner.run();
 
@@ -163,7 +162,7 @@ public class CodeRunnerTest {
   public void testFilesProperlyCleanedUp() {
     when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
 
-    sourceList.add(TestData.VALID_SOURCE);
+    sourceList.add(TestData.createValidSource());
     codeRunner.setSources(sourceList);
     codeRunner.run();
 

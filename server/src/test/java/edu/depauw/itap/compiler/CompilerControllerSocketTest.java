@@ -52,7 +52,7 @@ public class CompilerControllerSocketTest {
     stompSession.subscribe("/user/topic/compile", new CompileStompFrameHandler());
 
     stompSession.send("/app/compile",
-        new CompilerSources().setSources(Collections.singletonList(TestData.VALID_SOURCE)));
+        new CompilerSources().setSources(Collections.singletonList(TestData.createValidSource())));
 
     CompilerResponse compilerResults = completableFuture.get(5, TimeUnit.SECONDS);
 
@@ -64,7 +64,7 @@ public class CompilerControllerSocketTest {
   public void testCompileEndpointBadCode() throws Exception {
     stompSession.subscribe("/user/topic/compile", new CompileStompFrameHandler());
     stompSession.send("/app/compile",
-        new CompilerSources().setSources(Collections.singletonList(TestData.INVALID_SOURCE)));
+        new CompilerSources().setSources(Collections.singletonList(TestData.getInvalidSource())));
 
     CompilerResponse compilerResults = completableFuture.get(5, TimeUnit.SECONDS);
 

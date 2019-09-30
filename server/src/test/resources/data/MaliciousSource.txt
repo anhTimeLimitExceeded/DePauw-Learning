@@ -1,0 +1,20 @@
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+
+public class Test {
+  public static void main(String[] args) throws Exception {
+    String str = "Test";
+    System.out.print("Running Test");
+    String file = "testFile.txt";
+    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+    writer.write(str);
+    writer.close();
+    BufferedReader reader = new BufferedReader(new FileReader(file));
+    String currentLine = reader.readLine();
+    reader.close();
+    System.out.print(currentLine);
+  }
+}
