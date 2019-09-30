@@ -202,7 +202,14 @@ public class CodeRunnerTest {
 
   @Test
   public void testMaliciousCode() {
-    when(clock.instant()).thenAnswer((InvocationOnMock invocation) -> Instant.now());
+    when(clock.instant()).thenAnswer(new Answer<Instant>() {
+      private long count = 1000000;
+
+      public Instant answer(InvocationOnMock invocation) {
+        count += 2;
+        return Instant.ofEpochSecond(count);
+      }
+    });
 
     InOrder inOrder = Mockito.inOrder(messagingTemplate);
 
@@ -217,6 +224,10 @@ public class CodeRunnerTest {
     // Check that there was no output after writing and reading a file.
     inOrder.verify(messagingTemplate, never()).convertAndSendToUser(eq("test"),
         eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null),
+        same(messageHeaders));
+    inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
+        eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getStatus() != null
+            && arg.getStatus().equals(RunnerStatus.TIMED_OUT)),
         same(messageHeaders));
   }
 
