@@ -219,7 +219,7 @@ public class CodeRunnerImpl implements CodeRunner {
           }
 
           if (status != null) {
-            status.setStatus(RunnerStatus.RUNNING);
+            status.setStatus(this.status);
             this.messagingTemplate.convertAndSendToUser(this.session, "/topic/runner/status",
                 status, messageHeaders);
           }
@@ -230,6 +230,7 @@ public class CodeRunnerImpl implements CodeRunner {
             startTime = currentTime;
             if (executionTime.compareTo(MAX_EXECUTION_TIME) > 0) {
               vm.exit(1);
+              this.status = RunnerStatus.TIMED_OUT;
             }
           }
         }
@@ -243,8 +244,11 @@ public class CodeRunnerImpl implements CodeRunner {
             }
             status.setOutput(outputBuffer.toString());
           }
+          if (this.status.equals(RunnerStatus.RUNNING)) {
+            this.status = RunnerStatus.STOPPED;
+          }
           this.messagingTemplate.convertAndSendToUser(this.session, "/topic/runner/status",
-              status.setStatus(RunnerStatus.STOPPED), messageHeaders);
+              status.setStatus(this.status), messageHeaders);
         } catch (IOException e0) {
           e0.printStackTrace();
         }
