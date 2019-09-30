@@ -116,7 +116,7 @@ public class CodeRunnerServiceIntegrationTest {
         verify(messagingTemplate, times(1))
                 .convertAndSendToUser(eq("test1"), eq("/topic/runner/status"),
                         argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
-                                && arg.getOutput().equals("Hello Test 1!\n")),
+                                && arg.getOutput().contains("Hello Test 1!")),
                         same(messageHeaders));
 
         verify(codeRunnerSecond, times(1)).setSources(same(sourceSecond));
@@ -124,7 +124,7 @@ public class CodeRunnerServiceIntegrationTest {
         verify(messagingTemplate, times(1))
                 .convertAndSendToUser(eq("test2"), eq("/topic/runner/status"),
                         argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
-                                && arg.getOutput().equals("Hello Test 2!\n")),
+                                && arg.getOutput().contains("Hello Test 2!")),
                         same(messageHeaders));
     }
 
