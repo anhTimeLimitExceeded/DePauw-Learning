@@ -87,6 +87,37 @@ public class CodeRunnerServiceTest {
     assertThat(codeRunnerService.anyRunning()).isFalse();
   }
 
+  @Test
+  public void testAddInput() {
+    sourceList.add(TestData.createValidSource());
+
+    CodeRunner codeRunner = spy(new FakeCodeRunner());
+
+    when(codeRunnerFactory.createCodeRunner(eq("test"), any(), any(), any()))
+        .thenReturn(codeRunner);
+
+    assertThat(codeRunnerService.anyRunning()).isFalse();
+
+    codeRunnerService.createThread("test", sourceList, messageHeaders, compilerService,
+        messagingTemplate);
+
+    boolean result = codeRunnerService.addInput("test", "Test input");
+
+    assertThat(result).isTrue();
+    verify(codeRunner).addInput(eq("Test input"));
+
+    synchronized (codeRunner) {
+      codeRunner.notify();
+    }
+  }
+
+  @Test
+  public void testDoesNotAddInputIfNoCodeRunning() {
+    boolean result = codeRunnerService.addInput("test", "Test input");
+
+    assertThat(result).isFalse();
+  }
+
   private class FakeCodeRunner implements CodeRunner {
     private RunnerStatus status = RunnerStatus.STOPPED;
 

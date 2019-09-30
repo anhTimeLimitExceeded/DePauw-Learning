@@ -1,10 +1,12 @@
 package edu.depauw.itap.runner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,6 +24,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import edu.depauw.itap.compiler.CompilerResponse;
@@ -136,6 +139,65 @@ public class CodeRunnerTest {
     verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"), eq("/topic/compile"),
         argThat((CompilerResponse arg) -> arg.getResults() != null && !arg.getResults().isEmpty()),
         same(messageHeaders));
+  }
+
+  @Test
+  public void testTimesOut() {
+    when(clock.instant()).thenAnswer(new Answer<Instant>() {
+      private long count = 1000000;
+
+      public Instant answer(InvocationOnMock invocation) {
+        count += 5;
+        return Instant.ofEpochSecond(count);
+      }
+    });
+
+    sourceList.add(TestData.getTimeOutSource());
+    codeRunner.setSources(sourceList);
+    try {
+      codeRunner.run();
+    } catch (RuntimeException e) {
+      // Ignore as it is expected
+    }
+
+    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"), eq("/topic/runner/status"),
+        argThat((CodeRunnerStatus arg) -> arg.getStatus() != null
+            && arg.getStatus().equals(RunnerStatus.TIMED_OUT)),
+        same(messageHeaders));
+  }
+
+  @Test
+  public void testUsesInput() {
+    when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
+
+    StringBuilder cummulativeOutput = new StringBuilder();
+
+    doAnswer(invocation -> {
+      Object[] args = invocation.getArguments();
+      for (Object object : args) {
+        if (object instanceof CodeRunnerStatus) {
+          CodeRunnerStatus status = (CodeRunnerStatus) object;
+          if (status.getOutput() != null) {
+            cummulativeOutput.append(status.getOutput());
+          }
+        }
+      }
+      return null;
+    }).when(messagingTemplate).convertAndSendToUser(eq("test"), eq("/topic/runner/status"), any(),
+        same(messageHeaders));
+
+    sourceList.add(TestData.getInputIdentitySource());
+    codeRunner.setSources(sourceList);
+    codeRunner.addInput("Test input\n");
+    try {
+      codeRunner.run();
+    } catch (RuntimeException e) {
+      // Ignore as it is expected
+    }
+
+    String output = cummulativeOutput.toString();
+
+    assertThat(output).isEqualTo("Test input");
   }
 
   @Test

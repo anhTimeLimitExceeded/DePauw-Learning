@@ -42,6 +42,14 @@ public class TestData {
     return getSource("MaliciousSource.txt");
   }
 
+  public static String getTimeOutSource() {
+    return getSource("TimeOutSource.txt");
+  }
+
+  public static String getInputIdentitySource() {
+    return getSource("InputIdentitySource.txt");
+  }
+
   private static String getSource(String file) {
     // get file from classpath, resources folder
 

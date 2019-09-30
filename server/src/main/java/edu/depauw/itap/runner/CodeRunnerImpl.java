@@ -142,7 +142,11 @@ public class CodeRunnerImpl implements CodeRunner {
         Instant startTime = null;
         while (true) {
           eventSet = vm.eventQueue().remove(150);
-          Instant currentTime = Instant.now(this.clock);
+          Instant currentTime = null;
+          if (startTime != null) {
+            currentTime = Instant.now(this.clock);
+          }
+
           if (eventSet != null) {
             for (Event event : eventSet) {
 
@@ -224,7 +228,7 @@ public class CodeRunnerImpl implements CodeRunner {
                 status, messageHeaders);
           }
 
-          if (startTime != null) {
+          if (startTime != null && currentTime != null) {
             executionTime =
                 executionTime.plusMillis(Duration.between(startTime, currentTime).toMillis());
             startTime = currentTime;
