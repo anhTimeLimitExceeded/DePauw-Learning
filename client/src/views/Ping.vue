@@ -73,10 +73,12 @@ export default {
     };
   },
   beforeDestroy() {
-    if (this.stompClient.connected) {
-      this.stompClient.disconnect();
-    } else if (this.socket.readyState === this.socket.OPEN) {
-      this.socket.close();
+    if (this.connected) {
+      if (this.stompClient.connected) {
+        this.stompClient.disconnect();
+      } else if (this.socket.readyState === this.socket.OPEN) {
+        this.socket.close();
+      }
     }
   },
   methods: {
