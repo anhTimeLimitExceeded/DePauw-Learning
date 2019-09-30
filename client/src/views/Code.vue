@@ -18,6 +18,10 @@
     <div class="output">
       <div class="status">
         <span>Status: {{ remoteStatus }}</span>
+        <div class="input">
+          <input v-model="input" v-on:keyup.enter="sendInput" placeholder="code input" />
+          <button @click.stop="sendInput">Send Input</button>
+        </div>
       </div>
       <textarea :readonly="true" :value="remoteOutput"></textarea>
     </div>
@@ -90,6 +94,7 @@ export default {
       ].join('\n'),
       remoteOutput: '',
       remoteStatus: 'STOPPED',
+      input: '',
       editorOptions: {
         scrollBeyondLastLine: false,
         roundedSelection: false,
@@ -161,7 +166,19 @@ export default {
           {},
         );
         this.remoteOutput = '';
-        console.log('Sent request');
+        this.sendInput();
+      }
+    },
+    sendInput() {
+      if (this.connected && this.input !== '') {
+        this.input += '\n';
+        this.remoteOutput += this.input;
+        this.stompClient.send(
+          '/app/runner/input',
+          JSON.stringify({ input: this.input }),
+          {},
+        );
+        this.input = '';
       }
     },
     convertErrors(errors) {
@@ -214,6 +231,16 @@ export default {
 .output .status {
   display: flex;
   flex-direction: row;
+}
+
+.output .status .input {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+}
+
+.output .status .input input {
+  flex: 1 1 auto;
 }
 
 .output textarea {

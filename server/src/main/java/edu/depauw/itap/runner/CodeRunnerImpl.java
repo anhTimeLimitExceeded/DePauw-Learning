@@ -3,7 +3,7 @@ package edu.depauw.itap.runner;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
@@ -25,7 +25,6 @@ import com.sun.jdi.connect.VMStartException;
 import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.event.Event;
 import com.sun.jdi.event.EventSet;
-import com.sun.jdi.event.StepEvent;
 import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.StepRequest;
 import org.springframework.messaging.MessageHeaders;
@@ -36,7 +35,7 @@ import edu.depauw.itap.compiler.CompilerService;
 
 public class CodeRunnerImpl implements CodeRunner {
 
-  public static final Duration MAX_EXECUTION_TIME = Duration.ofSeconds(15);
+  public static final Duration MAX_EXECUTION_TIME = Duration.ofSeconds(30);
 
   private final CompilerService compilerService;
 
@@ -48,7 +47,7 @@ public class CodeRunnerImpl implements CodeRunner {
 
   private final ByteArrayOutputStream inputBuffer;
 
-  private Map<String, String> classNameTosource;
+  private Map<String, String> classNameToSource;
   private RunnerStatus status;
 
   public CodeRunnerImpl(String session, MessageHeaders messageHeaders,
@@ -64,15 +63,17 @@ public class CodeRunnerImpl implements CodeRunner {
   }
 
   public void setSources(List<String> sources) {
-    this.classNameTosource = sources.stream().collect(Collectors
+    this.classNameToSource = sources.stream().collect(Collectors
         .toMap(source -> CompilerService.getFullyQualifiedClassName(source), Function.identity()));
     this.status = RunnerStatus.LOADED;
   }
 
   @Override
   public void addInput(String input) {
-    for (char c : input.toCharArray()) {
-      inputBuffer.write(c);
+    synchronized (this.inputBuffer) {
+      for (char c : input.toCharArray()) {
+        this.inputBuffer.write(c);
+      }
     }
   }
 
@@ -82,15 +83,17 @@ public class CodeRunnerImpl implements CodeRunner {
 
   @Override
   public void run() {
-    this.status = RunnerStatus.RUNNING;
+    this.status = RunnerStatus.STARTING_UP;
+    this.messagingTemplate.convertAndSendToUser(this.session, "/topic/runner/status",
+        new CodeRunnerStatus().setStatus(this.status), messageHeaders);
 
     Path classRoot = CompilerService.getDirectoryPath(this.session);
 
-    String sourceClass = findMainClass(this.classNameTosource).orElseThrow();
+    String sourceClass = findMainClass(this.classNameToSource).orElseThrow();
 
     try {
       List<CompilerResult> compilingResults =
-          compilerService.compile(this.session, this.classNameTosource.entrySet().stream()
+          compilerService.compile(this.session, this.classNameToSource.entrySet().stream()
               .map(Map.Entry::getValue).collect(Collectors.toList()));
 
       if (!compilingResults.isEmpty()) {
@@ -129,16 +132,16 @@ public class CodeRunnerImpl implements CodeRunner {
       // Get streams to retrieve the output of the VM
       InputStreamReader reader = new InputStreamReader(vm.process().getInputStream());
       InputStreamReader errorReader = new InputStreamReader(vm.process().getErrorStream());
-      OutputStream inputStream = vm.process().getOutputStream();
+      OutputStreamWriter inputStream = new OutputStreamWriter(vm.process().getOutputStream());
       ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
 
       try {
         // Set up the variable to keep track of the time that the VM has run for
         Duration executionTime = Duration.ofMillis(0);
 
-        Instant startTime = Instant.now(this.clock);
+        Instant startTime = null;
         while (true) {
-          eventSet = vm.eventQueue().remove(500);
+          eventSet = vm.eventQueue().remove(150);
           Instant currentTime = Instant.now(this.clock);
           if (eventSet != null) {
             for (Event event : eventSet) {
@@ -150,36 +153,35 @@ public class CodeRunnerImpl implements CodeRunner {
                 StepRequest entryRequest =
                     vm.eventRequestManager().createStepRequest(((ClassPrepareEvent) event).thread(),
                         StepRequest.STEP_MIN, StepRequest.STEP_INTO);
-                for (String className : this.classNameTosource.keySet()) {
+                for (String className : this.classNameToSource.keySet()) {
                   entryRequest.addClassFilter(className);
                 }
                 entryRequest.enable();
                 event.request().disable();
-
+                startTime = Instant.now(this.clock);
+                this.status = RunnerStatus.RUNNING;
+                this.messagingTemplate.convertAndSendToUser(this.session, "/topic/runner/status",
+                    new CodeRunnerStatus().setStatus(this.status), messageHeaders);
               }
 
-              if (event instanceof StepEvent) {
+              // if (event instanceof StepEvent) {
 
-                // Code to print out all the stack frame information
+              // // Code to print out all the stack frame information
 
-                // StackFrame stackFrame = ((StepEvent) event).thread().frame(0);
-                // System.out.println(stackFrame.location());
-                // System.out.println(stackFrame.location().method());
-                // System.out.println(stackFrame.location().declaringType().fields());
-                // System.out.println(stackFrame.thisObject());
-                // System.out.println(stackFrame.getArgumentValues());
-                // try {
-                // Map<LocalVariable, Value> visibleVariables =
-                // stackFrame.getValues(stackFrame.visibleVariables());
-                // System.out.println("Local Variables =");
-                // for (Map.Entry<LocalVariable, Value> entry : visibleVariables.entrySet()) {
-                // System.out.println(" " + entry.getKey().name() + " = " + entry.getValue());
-                // }
-                // } catch (AbsentInformationException e) {
-                // System.out.println(e);
-                // }
+              // StackFrame stackFrame = ((StepEvent) event).thread().frame(0);
+              // System.out.println(stackFrame.location());
+              // System.out.println(stackFrame.location().method());
+              // System.out.println(stackFrame.location().declaringType().fields());
+              // System.out.println(stackFrame.thisObject());
+              // System.out.println(stackFrame.getArgumentValues());
+              // Map<LocalVariable, Value> visibleVariables =
+              // stackFrame.getValues(stackFrame.visibleVariables());
+              // System.out.println("Local Variables =");
+              // for (Map.Entry<LocalVariable, Value> entry : visibleVariables.entrySet()) {
+              // System.out.println(" " + entry.getKey().name() + " = " + entry.getValue());
+              // }
 
-              }
+              // }
             }
 
             vm.resume();
@@ -187,8 +189,14 @@ public class CodeRunnerImpl implements CodeRunner {
 
           CodeRunnerStatus status = null;
 
-          if (inputBuffer.size() > 0) {
-            inputBuffer.writeTo(inputStream);
+          if (this.inputBuffer.size() > 0) {
+            synchronized (this.inputBuffer) {
+              for (char c : this.inputBuffer.toString().toCharArray()) {
+                inputStream.write(c);
+              }
+              this.inputBuffer.reset();
+              inputStream.flush();
+            }
           }
 
           if (reader.ready()) {
@@ -216,11 +224,13 @@ public class CodeRunnerImpl implements CodeRunner {
                 status, messageHeaders);
           }
 
-          executionTime =
-              executionTime.plusMillis(Duration.between(startTime, currentTime).toMillis());
-          startTime = currentTime;
-          if (executionTime.compareTo(MAX_EXECUTION_TIME) > 0) {
-            vm.exit(1);
+          if (startTime != null) {
+            executionTime =
+                executionTime.plusMillis(Duration.between(startTime, currentTime).toMillis());
+            startTime = currentTime;
+            if (executionTime.compareTo(MAX_EXECUTION_TIME) > 0) {
+              vm.exit(1);
+            }
           }
         }
       } catch (VMDisconnectedException e) {
@@ -240,6 +250,14 @@ public class CodeRunnerImpl implements CodeRunner {
         }
       } catch (Exception e) {
         e.printStackTrace();
+      } finally {
+        try {
+          inputStream.close();
+          reader.close();
+          errorReader.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     } finally {
       CompilerService.deleteDirectory(classRoot.toFile());

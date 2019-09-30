@@ -3,7 +3,7 @@ package edu.depauw.itap.runner;
 import java.util.List;
 
 enum RunnerStatus {
-  LOADED, RUNNING, STOPPED;
+  LOADED, STARTING_UP, RUNNING, STOPPED;
 }
 
 
