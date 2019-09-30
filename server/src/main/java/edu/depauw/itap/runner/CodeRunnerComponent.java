@@ -27,4 +27,11 @@ public class CodeRunnerComponent {
         headerAccessor.getMessageHeaders(), compilerService, messagingTemplate);
     System.out.println("Received request: " + headerAccessor.getSessionId());
   }
+
+  @MessageMapping("/runner/input")
+  public void runCode(@Payload CodeRunnerInput input, SimpMessageHeaderAccessor headerAccessor) {
+    if (codeRunnerService.getRunner(headerAccessor.getSessionId()) != null) {
+      codeRunnerService.addInput(headerAccessor.getSessionId(), input.getInput());
+    }
+  }
 }

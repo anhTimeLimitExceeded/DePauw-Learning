@@ -80,6 +80,19 @@ public class CodeRunnerService {
     }
   }
 
+  public CodeRunner getRunner(String session) {
+    return sessionToCodeRunner.get(session);
+  }
+
+  public boolean addInput(String session, String input) {
+    CodeRunner runner = sessionToCodeRunner.get(session);
+    if (runner != null) {
+      runner.addInput(input);
+      return true;
+    }
+    return false;
+  }
+
   @PreDestroy
   public void cleanUp() {
     this.running = false;

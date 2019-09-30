@@ -3,6 +3,7 @@ package edu.depauw.itap.runner;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
@@ -33,11 +34,6 @@ import edu.depauw.itap.compiler.CompilerResponse;
 import edu.depauw.itap.compiler.CompilerResult;
 import edu.depauw.itap.compiler.CompilerService;
 
-enum RunnerStatus {
-  LOADED, RUNNING, STOPPED;
-}
-
-
 public class CodeRunnerImpl implements CodeRunner {
 
   public static final Duration MAX_EXECUTION_TIME = Duration.ofSeconds(15);
@@ -50,6 +46,8 @@ public class CodeRunnerImpl implements CodeRunner {
   private final MessageHeaders messageHeaders;
   private final Clock clock;
 
+  private final ByteArrayOutputStream inputBuffer;
+
   private Map<String, String> classNameTosource;
   private RunnerStatus status;
 
@@ -61,12 +59,21 @@ public class CodeRunnerImpl implements CodeRunner {
     this.compilerService = compilerService;
     this.messagingTemplate = messagingTemplate;
     this.clock = clock;
+
+    this.inputBuffer = new ByteArrayOutputStream();
   }
 
   public void setSources(List<String> sources) {
     this.classNameTosource = sources.stream().collect(Collectors
         .toMap(source -> CompilerService.getFullyQualifiedClassName(source), Function.identity()));
     this.status = RunnerStatus.LOADED;
+  }
+
+  @Override
+  public void addInput(String input) {
+    for (char c : input.toCharArray()) {
+      inputBuffer.write(c);
+    }
   }
 
   public RunnerStatus getStatus() {
@@ -122,6 +129,7 @@ public class CodeRunnerImpl implements CodeRunner {
       // Get streams to retrieve the output of the VM
       InputStreamReader reader = new InputStreamReader(vm.process().getInputStream());
       InputStreamReader errorReader = new InputStreamReader(vm.process().getErrorStream());
+      OutputStream inputStream = vm.process().getOutputStream();
       ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
 
       try {
@@ -179,6 +187,10 @@ public class CodeRunnerImpl implements CodeRunner {
 
           CodeRunnerStatus status = null;
 
+          if (inputBuffer.size() > 0) {
+            inputBuffer.writeTo(inputStream);
+          }
+
           if (reader.ready()) {
             while (reader.ready()) {
               outputBuffer.write((char) reader.read());
@@ -232,6 +244,7 @@ public class CodeRunnerImpl implements CodeRunner {
     } finally {
       CompilerService.deleteDirectory(classRoot.toFile());
 
+      this.inputBuffer.reset();
       this.status = RunnerStatus.STOPPED;
     }
   }

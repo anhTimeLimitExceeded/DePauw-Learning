@@ -114,5 +114,9 @@ public class CodeRunnerServiceTest {
     public RunnerStatus getStatus() {
       return status;
     }
+
+    @Override
+    public void addInput(String input) {
+    }
   }
 }
