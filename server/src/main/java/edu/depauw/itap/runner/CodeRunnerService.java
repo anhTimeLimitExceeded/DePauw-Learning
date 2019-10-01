@@ -33,6 +33,8 @@ public class CodeRunnerService {
 
   private boolean running = true;
 
+  private volatile boolean waitingForThreadToFinish = false;
+
   public CodeRunnerService() {
     this.sessionToCodeRunner = new HashMap<>();
     this.sessionToThread = new HashMap<>();
@@ -46,7 +48,9 @@ public class CodeRunnerService {
             Thread currentThread = threadQueue.poll(500, TimeUnit.MILLISECONDS);
             if (currentThread != null) {
               currentThread.start();
+              waitingForThreadToFinish = true;
               currentThread.join();
+              waitingForThreadToFinish = false;
             }
           } catch (InterruptedException e) {
             e.printStackTrace();
@@ -58,8 +62,8 @@ public class CodeRunnerService {
   }
 
   public boolean anyRunning() {
-    return !threadQueue.isEmpty() || sessionToThread.entrySet().stream().map(Map.Entry::getValue)
-        .anyMatch((thread) -> thread.isAlive());
+    return this.waitingForThreadToFinish || !this.threadQueue.isEmpty() || this.sessionToThread
+        .entrySet().stream().map(Map.Entry::getValue).anyMatch((thread) -> thread.isAlive());
   }
 
   /**
