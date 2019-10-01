@@ -23,6 +23,7 @@
     "webstomp-client": "^1.2.6"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.6.2",
     "@vue/cli-plugin-babel": "^3.11.0",
     "@vue/cli-plugin-eslint": "^3.11.0",
     "@vue/cli-plugin-unit-jest": "^3.11.0",
@@ -32,18 +33,24 @@
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^23.6.0",
+    "babel-preset-env": "^1.7.0",
     "eslint": "^5.16.0",
+    "eslint-import-resolver-webpack": "^0.11.1",
     "eslint-plugin-vue": "^5.0.0",
+    "husky": "^3.0.7",
     "lint-staged": "^8.1.5",
     "vue-template-compiler": "^2.6.10"
   },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "*.{js,vue}": [
       "vue-cli-service lint",
-      "git add"
+      "git add",
+      "npm run test:unit -- --bail --findRelatedTests"
     ]
   }
 }
