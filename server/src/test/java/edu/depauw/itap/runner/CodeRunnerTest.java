@@ -10,6 +10,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import edu.depauw.itap.compiler.CompilerResponse;
+import edu.depauw.itap.compiler.CompilerService;
+import edu.depauw.itap.util.TestData;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,9 +28,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerResponse;
-import edu.depauw.itap.compiler.CompilerService;
-import edu.depauw.itap.util.TestData;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CodeRunnerTest {

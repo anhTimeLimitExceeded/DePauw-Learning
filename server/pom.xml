@@ -16,6 +16,9 @@
     <maven.compiler.target>12</maven.compiler.target>
     <org.springframework.version>5.1.9.RELEASE</org.springframework.version>
     <java.version>12</java.version>
+    <checkstyle.config.location>google_checks.xml</checkstyle.config.location>
+    <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
+    <checkstyle.violationSeverity>warning</checkstyle.violationSeverity>
   </properties>
 
   <dependencies>
@@ -76,6 +79,21 @@
       <version>0.1</version>
     </dependency>
   </dependencies>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <violationSeverity>${checkstyle.violationSeverity}</violationSeverity>
+          <consoleOutput>${checkstyle.consoleOutput}</consoleOutput>
+          <configLocation>${checkstyle.config.location}</configLocation>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 
   <build>
     <plugins>

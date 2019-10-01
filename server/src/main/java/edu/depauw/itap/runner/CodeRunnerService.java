@@ -1,5 +1,6 @@
 package edu.depauw.itap.runner;
 
+import edu.depauw.itap.compiler.CompilerService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,10 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import edu.depauw.itap.compiler.CompilerService;
 
 @Service
 public class CodeRunnerService {
+  @Autowired
+  private CompilerService compilerService;
+
+  @Autowired
+  private SimpMessagingTemplate messagingTemplate;
+
   @Autowired
   private CodeRunnerFactory codeRunnerFactory;
 
@@ -22,8 +28,11 @@ public class CodeRunnerService {
     this.sessionToThread = new HashMap<>();
   }
 
-  public void createThread(String session, List<String> sources, MessageHeaders messageHeaders,
-      CompilerService compilerService, SimpMessagingTemplate messagingTemplate) {
+  /**
+   * Creates a code running thread for a given session and sources with the given message headers
+   * and the messaging template.
+   */
+  public void createThread(String session, List<String> sources, MessageHeaders messageHeaders) {
     CodeRunner runner = sessionToCodeRunner.computeIfAbsent(session, (k) -> codeRunnerFactory
         .createCodeRunner(session, messageHeaders, compilerService, messagingTemplate));
     runner.setSources(sources);

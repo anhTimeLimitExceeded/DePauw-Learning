@@ -1,5 +1,21 @@
 package edu.depauw.itap.runner;
 
+import com.sun.jdi.Bootstrap;
+import com.sun.jdi.VMDisconnectedException;
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.connect.Connector;
+import com.sun.jdi.connect.IllegalConnectorArgumentsException;
+import com.sun.jdi.connect.LaunchingConnector;
+import com.sun.jdi.connect.VMStartException;
+import com.sun.jdi.event.ClassPrepareEvent;
+import com.sun.jdi.event.Event;
+import com.sun.jdi.event.EventSet;
+import com.sun.jdi.event.StepEvent;
+import com.sun.jdi.request.ClassPrepareRequest;
+import com.sun.jdi.request.StepRequest;
+import edu.depauw.itap.compiler.CompilerResponse;
+import edu.depauw.itap.compiler.CompilerResult;
+import edu.depauw.itap.compiler.CompilerService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,29 +30,8 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import com.sun.jdi.Bootstrap;
-import com.sun.jdi.VMDisconnectedException;
-import com.sun.jdi.VirtualMachine;
-import com.sun.jdi.connect.Connector;
-import com.sun.jdi.connect.IllegalConnectorArgumentsException;
-import com.sun.jdi.connect.LaunchingConnector;
-import com.sun.jdi.connect.VMStartException;
-import com.sun.jdi.event.ClassPrepareEvent;
-import com.sun.jdi.event.Event;
-import com.sun.jdi.event.EventSet;
-import com.sun.jdi.event.StepEvent;
-import com.sun.jdi.request.ClassPrepareRequest;
-import com.sun.jdi.request.StepRequest;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerResponse;
-import edu.depauw.itap.compiler.CompilerResult;
-import edu.depauw.itap.compiler.CompilerService;
-
-enum RunnerStatus {
-  LOADED, RUNNING, STOPPED;
-}
-
 
 public class CodeRunner implements Runnable {
 
@@ -53,6 +48,15 @@ public class CodeRunner implements Runnable {
   private Map<String, String> classNameTosource;
   private RunnerStatus status;
 
+  /**
+   * Creates a runner with the given parameters.
+   * 
+   * @param session           the session id
+   * @param messageHeaders    the message headers to use
+   * @param compilerService   the service to use to compile code
+   * @param messagingTemplate the template to use to send messages
+   * @param clock             the clock to use
+   */
   public CodeRunner(String session, MessageHeaders messageHeaders, CompilerService compilerService,
       SimpMessagingTemplate messagingTemplate, Clock clock) {
     this.session = session;
@@ -63,6 +67,11 @@ public class CodeRunner implements Runnable {
     this.clock = clock;
   }
 
+  /**
+   * Sets the sources for the code runner.
+   * 
+   * @param sources the sources to use
+   */
   public void setSources(List<String> sources) {
     this.classNameTosource = sources.stream().collect(Collectors
         .toMap(source -> CompilerService.getFullyQualifiedClassName(source), Function.identity()));
@@ -129,7 +138,7 @@ public class CodeRunner implements Runnable {
       Instant startTime = Instant.now(this.clock);
       while (true) {
         eventSet = vm.eventQueue().remove(500);
-        Instant currentTime = Instant.now(this.clock);
+        final Instant currentTime = Instant.now(this.clock);
         if (eventSet != null) {
           for (Event event : eventSet) {
 

@@ -1,11 +1,11 @@
 package edu.depauw.itap.runner;
 
+import edu.depauw.itap.compiler.CompilerService;
 import java.time.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerService;
 
 @Configuration
 public class CodeRunnerFactory {

@@ -1,5 +1,7 @@
 package edu.depauw.itap.compiler;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -21,8 +23,6 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,6 +32,13 @@ public class CompilerService {
     return Paths.get(".").resolve("temp").resolve(session).normalize().toAbsolutePath();
   }
 
+  /**
+   * Returns the FQCN of a given source string.
+   * 
+   * @param source the source to use
+   * @return the FQCN of the source
+   * @throws RuntimeException if a FQCN could not be created
+   */
   public static String getFullyQualifiedClassName(String source) throws RuntimeException {
     List<String> className = new ArrayList<>();
 
@@ -56,6 +63,12 @@ public class CompilerService {
     return Joiner.on(".").join(className);
   }
 
+  /**
+   * Recursively deletes a directory.
+   * 
+   * @param directoryToBeDeleted the directory to delete
+   * @return whether the directory was sucessfully deleted
+   */
   public static boolean deleteDirectory(File directoryToBeDeleted) {
     File[] allContents = directoryToBeDeleted.listFiles();
     if (allContents != null) {
@@ -66,6 +79,13 @@ public class CompilerService {
     return directoryToBeDeleted.delete();
   }
 
+  /**
+   * Compiles a list of sources.
+   * 
+   * @param session the session for which the sources correspond to
+   * @param sources the sources to compile
+   * @return the errors from the compiler
+   */
   public List<CompilerResult> compile(String session, List<String> sources) {
 
     Path root = getDirectoryPath(session);
@@ -129,6 +149,13 @@ public class CompilerService {
     return errors;
   }
 
+  /**
+   * Compiles a list of sources without saving their results.
+   * 
+   * @param session the session for which the sources correspond to
+   * @param sources the sources to compile
+   * @return the errors from the compiler
+   */
   public List<CompilerResult> compileWithoutSaving(String session, List<String> sources) {
     List<CompilerResult> results = compile(session, sources);
 

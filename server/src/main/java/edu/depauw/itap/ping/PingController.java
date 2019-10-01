@@ -13,11 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/ping")
 public class PingController {
 
-  @GetMapping(path = { "", "/" })
+  @GetMapping(path = {"", "/"})
   public String getPing(@RequestParam(value = "ping", defaultValue = "pong") String ping) {
     return modifyString(ping);
   }
 
+  /**
+   * Returns a modified string from the query.
+   * 
+   * @param ping the string to modifiy
+   * @return the modified string
+   */
   @MessageMapping("/ping")
   @SendToUser("/topic/ping")
   public String sendPing(@Payload String ping, SimpMessageHeaderAccessor headerAccessor) {

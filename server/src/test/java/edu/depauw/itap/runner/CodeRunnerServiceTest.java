@@ -8,6 +8,8 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import edu.depauw.itap.compiler.CompilerService;
+import edu.depauw.itap.util.TestData;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -17,8 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerService;
-import edu.depauw.itap.util.TestData;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CodeRunnerServiceTest {
@@ -48,8 +48,7 @@ public class CodeRunnerServiceTest {
     when(codeRunnerFactory.createCodeRunner(eq("test"), any(), any(), any()))
         .thenReturn(codeRunner);
 
-    codeRunnerService.createThread("test", sourceList, messageHeaders, compilerService,
-        messagingTemplate);
+    codeRunnerService.createThread("test", sourceList, messageHeaders);
 
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
         same(compilerService), same(messagingTemplate));
