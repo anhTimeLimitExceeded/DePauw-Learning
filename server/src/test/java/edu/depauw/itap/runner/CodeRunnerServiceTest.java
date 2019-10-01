@@ -73,7 +73,7 @@ public class CodeRunnerServiceTest {
 
     while (!codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
       try {
-        Thread.sleep(250);
+        Thread.sleep(25);
       } catch (InterruptedException e) {
         // Ignore
       }
@@ -85,9 +85,9 @@ public class CodeRunnerServiceTest {
       codeRunner.notify();
     }
 
-    while (!codeRunner.getStatus().equals(RunnerStatus.STOPPED)) {
+    while (codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
       try {
-        Thread.sleep(250);
+        Thread.sleep(25);
       } catch (InterruptedException e) {
         // Ignore
       }

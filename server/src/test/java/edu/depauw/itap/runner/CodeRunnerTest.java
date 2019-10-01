@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -115,7 +116,7 @@ public class CodeRunnerTest {
 
     for (int i = 0; i < 5; i++) {
       final int n = i;
-      inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
+      inOrder.verify(messagingTemplate, timeout(100).times(1)).convertAndSendToUser(eq("test"),
           eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
               && arg.getOutput().equals(Integer.toString(n) + "\n")),
           same(messageHeaders));
