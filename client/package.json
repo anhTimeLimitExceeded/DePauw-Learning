@@ -43,13 +43,14 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run test:unit"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
     "*.{js,vue}": [
       "vue-cli-service lint",
-      "git add"
+      "git add",
+      "npm run test:unit -- --bail --findRelatedTests"
     ]
   }
 }
