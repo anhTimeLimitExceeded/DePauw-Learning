@@ -20,3 +20,4 @@ matrix:
         directories:
           - $HOME/.npm
           - $TRAVIS_BUILD_DIR/client/node_modules
+          - $TRAVIS_BUILD_DIR/client/.cache

@@ -13,6 +13,7 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/',
   ],
+  cacheDirectory: './.cache',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
