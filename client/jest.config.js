@@ -11,10 +11,11 @@ module.exports = {
     '^.+\\.jsx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(lodash-es)/)',
+    '/node_modules/(?!(lodash-es)|(monaco-editor)/)',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    'monaco-editor': '<rootDir>/node_modules/monaco-editor/esm/vs/editor/editor.api',
   },
   snapshotSerializers: [
     'jest-serializer-vue',

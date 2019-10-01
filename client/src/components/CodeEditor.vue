@@ -2,7 +2,7 @@
   <div class="code-editor">
     <div>
       <span>{{ status }} to Java server</span>
-      <button @click.stop="run">Run code</button>
+      <button id="run-code" @click.stop="run">Run code</button>
     </div>
     <div class="editor-wrapper">
       <MonacoEditor
@@ -159,7 +159,6 @@ export default {
         this.stompClient.send(
           '/app/compile',
           JSON.stringify({ sources: [this.code] }),
-          {},
         );
       }
     },
@@ -168,7 +167,6 @@ export default {
         this.stompClient.send(
           '/app/run',
           JSON.stringify({ sources: [this.code] }),
-          {},
         );
         this.remoteOutput = '';
         this.sendInput();
@@ -181,7 +179,6 @@ export default {
         this.stompClient.send(
           '/app/runner/input',
           JSON.stringify({ input: this.input }),
-          {},
         );
         this.input = '';
       }
