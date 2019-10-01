@@ -8,7 +8,7 @@ matrix:
         directories:
           - $HOME/.m2
       script:
-        - mvn test && mvn checkstyle:check
+        - mvn test
 
     - language: node_js
       node_js:

@@ -45,11 +45,13 @@ public class CodeRunnerTest {
 
   private CodeRunner codeRunner;
 
-  private List<String> sourceList = new ArrayList<>();
+  private List<String> sourceList;
 
   @Before
   public void setup() {
-    codeRunner = new CodeRunner("test", messageHeaders, compilerService, messagingTemplate, clock);
+    sourceList = new ArrayList<>();
+    codeRunner =
+        new CodeRunnerImpl("test", messageHeaders, compilerService, messagingTemplate, clock);
   }
 
   @Test
