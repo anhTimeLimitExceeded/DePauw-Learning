@@ -64,9 +64,9 @@ public class CodeRunnerServiceIntegrationTest {
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
         same(compilerService), same(messagingTemplate));
     verify(codeRunner, times(1)).setSources(same(source));
-    verify(codeRunner, timeout(100).times(1)).run();
-    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"), eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
+    verify(codeRunner, timeout(250).times(1)).run();
+    verify(messagingTemplate, timeout(250).times(1)).convertAndSendToUser(eq("test"),
+        eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello World!\n")),
         same(messageHeaders));
   }
@@ -106,15 +106,15 @@ public class CodeRunnerServiceIntegrationTest {
         same(compilerService), same(messagingTemplate));
 
     verify(codeRunnerFirst, times(1)).setSources(same(sourceFirst));
-    verify(codeRunnerFirst, times(1)).run();
-    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test1"),
+    verify(codeRunnerFirst, timeout(250).times(1)).run();
+    verify(messagingTemplate, timeout(250).times(1)).convertAndSendToUser(eq("test1"),
         eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello Test 1!\n")),
         same(messageHeaders));
 
     verify(codeRunnerSecond, times(1)).setSources(same(sourceSecond));
-    verify(codeRunnerSecond, times(1)).run();
-    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test2"),
+    verify(codeRunnerSecond, timeout(250).times(1)).run();
+    verify(messagingTemplate, timeout(250).times(1)).convertAndSendToUser(eq("test2"),
         eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello Test 2!\n")),
         same(messageHeaders));
