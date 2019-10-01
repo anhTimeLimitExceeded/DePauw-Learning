@@ -36,11 +36,14 @@
     "eslint": "^5.16.0",
     "eslint-import-resolver-webpack": "^0.11.1",
     "eslint-plugin-vue": "^5.0.0",
+    "husky": "^3.0.7",
     "lint-staged": "^8.1.5",
     "vue-template-compiler": "^2.6.10"
   },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "*.{js,vue}": [
