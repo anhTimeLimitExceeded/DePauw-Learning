@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,7 +64,7 @@ public class CodeRunnerServiceIntegrationTest {
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
         same(compilerService), same(messagingTemplate));
     verify(codeRunner, times(1)).setSources(same(source));
-    verify(codeRunner, times(1)).run();
+    verify(codeRunner, timeout(100).times(1)).run();
     verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"), eq("/topic/runner/status"),
         argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello World!\n")),
