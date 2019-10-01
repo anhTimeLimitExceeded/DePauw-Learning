@@ -2,12 +2,12 @@ package edu.depauw.itap.runner;
 
 import java.time.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
 import edu.depauw.itap.compiler.CompilerService;
 
-@Configuration
+@Service
 public class CodeRunnerFactory {
 
   @Autowired
@@ -15,6 +15,6 @@ public class CodeRunnerFactory {
 
   public CodeRunner createCodeRunner(String session, MessageHeaders messageHeaders,
       CompilerService compilerService, SimpMessagingTemplate messagingTemplate) {
-    return new CodeRunner(session, messageHeaders, compilerService, messagingTemplate, clock);
+    return new CodeRunnerImpl(session, messageHeaders, compilerService, messagingTemplate, clock);
   }
 }
