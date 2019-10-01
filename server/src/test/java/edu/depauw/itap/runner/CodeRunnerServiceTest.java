@@ -72,6 +72,11 @@ public class CodeRunnerServiceTest {
     codeRunnerService.createThread("test", sourceList, messageHeaders);
 
     while (!codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        // Ignore
+      }
     }
 
     assertThat(codeRunnerService.anyRunning()).isTrue();
@@ -81,6 +86,11 @@ public class CodeRunnerServiceTest {
     }
 
     while (!codeRunner.getStatus().equals(RunnerStatus.STOPPED)) {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        // Ignore
+      }
     }
 
     assertThat(codeRunnerService.anyRunning()).isFalse();
