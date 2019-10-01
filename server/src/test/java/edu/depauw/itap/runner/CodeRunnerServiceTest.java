@@ -59,7 +59,7 @@ public class CodeRunnerServiceTest {
   }
 
   @Test
-  public void testAnyThreadRunning() {
+  public void testAnyThreadRunning() throws InterruptedException {
     sourceList.add(TestData.VALID_SOURCE);
 
     CodeRunner codeRunner = spy(new FakeCodeRunner());
@@ -72,11 +72,7 @@ public class CodeRunnerServiceTest {
     codeRunnerService.createThread("test", sourceList, messageHeaders);
 
     while (!codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
-      try {
-        Thread.sleep(25);
-      } catch (InterruptedException e) {
-        // Ignore
-      }
+      Thread.sleep(25);
     }
 
     assertThat(codeRunnerService.anyRunning()).isTrue();
@@ -86,12 +82,10 @@ public class CodeRunnerServiceTest {
     }
 
     while (codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
-      try {
-        Thread.sleep(25);
-      } catch (InterruptedException e) {
-        // Ignore
-      }
+      Thread.sleep(25);
     }
+
+    Thread.sleep(50);
 
     assertThat(codeRunnerService.anyRunning()).isFalse();
   }
