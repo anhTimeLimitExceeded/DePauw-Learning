@@ -45,7 +45,10 @@ public class CodeRunnerService {
       public void run() {
         while (running) {
           try {
-            Thread currentThread = threadQueue.poll(500, TimeUnit.MILLISECONDS);
+            Thread currentThread;
+            synchronized (threadQueue) {
+              currentThread = threadQueue.poll(500, TimeUnit.MILLISECONDS);
+            }
             if (currentThread != null) {
               currentThread.start();
               waitingForThreadToFinish = true;
@@ -62,8 +65,10 @@ public class CodeRunnerService {
   }
 
   public boolean anyRunning() {
-    return this.waitingForThreadToFinish || !this.threadQueue.isEmpty() || this.sessionToThread
-        .entrySet().stream().map(Map.Entry::getValue).anyMatch((thread) -> thread.isAlive());
+    synchronized (this.threadQueue) {
+      return this.waitingForThreadToFinish || !this.threadQueue.isEmpty() || this.sessionToThread
+          .entrySet().stream().map(Map.Entry::getValue).anyMatch((thread) -> thread.isAlive());
+    }
   }
 
   /**

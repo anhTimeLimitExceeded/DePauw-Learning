@@ -59,6 +59,11 @@ public class CodeRunnerServiceIntegrationTest {
     codeRunnerService.createThread("test", source, messageHeaders);
 
     while (codeRunnerService.anyRunning()) {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        // Ignore
+      }
     }
 
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
@@ -98,6 +103,11 @@ public class CodeRunnerServiceIntegrationTest {
     codeRunnerService.createThread("test2", sourceSecond, messageHeaders);
 
     while (codeRunnerService.anyRunning()) {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        // Ignore
+      }
     }
 
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test1"), same(messageHeaders),
