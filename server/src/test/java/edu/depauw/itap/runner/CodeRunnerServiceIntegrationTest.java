@@ -48,7 +48,7 @@ public class CodeRunnerServiceIntegrationTest {
   public void testCreateThread() {
     when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
 
-    List<String> source = Collections.singletonList(TestData.VALID_SOURCE);
+    List<String> source = Collections.singletonList(TestData.createValidSource());
 
     CodeRunner codeRunner =
         spy(new CodeRunnerImpl("test", messageHeaders, compilerService, messagingTemplate, clock));

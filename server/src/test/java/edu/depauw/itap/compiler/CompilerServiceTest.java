@@ -22,7 +22,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingWithoutSaving() {
-    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.createValidSource());
 
     List<CompilerResult> results = compilerService.compileWithoutSaving("test", sources);
 
@@ -32,7 +32,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingWithoutSavingDoesNotSaveFiles() {
-    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.createValidSource());
 
     compilerService.compileWithoutSaving("test", sources);
 
@@ -42,7 +42,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompiling() {
-    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.createValidSource());
 
     List<CompilerResult> results = compilerService.compile("test", sources);
 
@@ -52,7 +52,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingSaveFiles() {
-    List<String> sources = Collections.singletonList(TestData.VALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.createValidSource());
 
     compilerService.compile("test", sources);
 
@@ -65,7 +65,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testCompilingInvalidSource() {
-    List<String> sources = Collections.singletonList(TestData.INVALID_SOURCE);
+    List<String> sources = Collections.singletonList(TestData.getInvalidSource());
 
     List<CompilerResult> results = compilerService.compile("test", sources);
 
@@ -82,7 +82,7 @@ public class CompilerServiceTest {
 
   @Test
   public void testGetClassName() {
-    String className = CompilerService.getFullyQualifiedClassName(TestData.VALID_SOURCE);
+    String className = CompilerService.getFullyQualifiedClassName(TestData.createValidSource());
 
     assertThat(className).isEqualTo("Test");
   }
@@ -90,7 +90,7 @@ public class CompilerServiceTest {
   @Test
   public void testGetClassNameWithPackage() {
     String className =
-        CompilerService.getFullyQualifiedClassName(TestData.VALID_SOURCE_WITH_PACKAGE);
+        CompilerService.getFullyQualifiedClassName(TestData.getValidSourceWithPackage());
 
     assertThat(className).isEqualTo("test.moretest.Test");
   }

@@ -56,7 +56,7 @@ public class CodeRunnerControllerSocketTest {
     stompSession.subscribe("/user/topic/runner/status", new StatusStompFrameHandler());
 
     stompSession.send("/app/run",
-        new CompilerSources().setSources(Collections.singletonList(TestData.VALID_SOURCE)));
+        new CompilerSources().setSources(Collections.singletonList(TestData.createValidSource())));
 
     CodeRunnerStatus status = null;
     List<CodeRunnerStatus> results = new ArrayList<>();
@@ -73,7 +73,7 @@ public class CodeRunnerControllerSocketTest {
 
     assertThat(results).isNotEmpty();
     assertThat(results.stream()).anyMatch((result) -> {
-      return result.getOutput().equals("Hello World!\n");
+      return result.getOutput() != null && result.getOutput().equals("Hello World!\n");
     });
 
     assertThat(results.stream()).noneMatch((result) -> {

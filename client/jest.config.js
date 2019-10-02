@@ -11,17 +11,18 @@ module.exports = {
     '^.+\\.jsx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!(lodash-es)|(monaco-editor)/)',
   ],
   cacheDirectory: './.cache',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    'monaco-editor': '<rootDir>/node_modules/monaco-editor/esm/vs/editor/editor.api',
   },
   snapshotSerializers: [
     'jest-serializer-vue',
   ],
   testMatch: [
-    '**/tests/unit/**/*.spec.(js|jsx|ts|tsx)|**/__tests__/*.(js|jsx|ts|tsx)',
+    '**/__tests__/*.(js|jsx|ts|tsx)',
   ],
   testURL: 'http://localhost/',
   watchPlugins: [
@@ -29,6 +30,6 @@ module.exports = {
     'jest-watch-typeahead/testname',
   ],
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.{js,vue}'],
+  collectCoverageFrom: ['src/**/*.{js,vue}', '!src/**/__tests__/*.{js,vue}'],
   coverageReporters: ['lcov', 'text-summary'],
 };

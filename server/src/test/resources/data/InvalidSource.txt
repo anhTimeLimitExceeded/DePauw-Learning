@@ -1,0 +1,5 @@
+public class Test {
+  public static void main(String[] args) {
+    NOT_VALID_FUNCTION("Hello World!");
+  }
+}
