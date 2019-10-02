@@ -1,0 +1,24 @@
+matrix:
+  include:
+    - before_script:
+        - cd server
+      language: java
+      jdk: oraclejdk12
+      cache:
+        directories:
+          - $HOME/.m2
+      script:
+        - mvn test
+
+    - language: node_js
+      node_js:
+        - 12
+      install:
+        - cd client
+        - npm install
+      script:
+        - npm run test:unit
+      cache:
+        directories:
+          - $TRAVIS_BUILD_DIR/client/node_modules
+          - $TRAVIS_BUILD_DIR/client/.cache

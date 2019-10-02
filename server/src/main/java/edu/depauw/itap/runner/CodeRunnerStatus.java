@@ -5,35 +5,35 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(Include.NON_NULL)
 public class CodeRunnerStatus {
-    private String output;
-    private String errorOutput;
+  private String output;
+  private String errorOutput;
 
-    private RunnerStatus status;
+  private RunnerStatus status;
 
-    public String getOutput() {
-        return output;
-    }
+  public String getOutput() {
+    return output;
+  }
 
-    public CodeRunnerStatus setOutput(String output) {
-        this.output = output;
-        return this;
-    }
+  public CodeRunnerStatus setOutput(String output) {
+    this.output = output;
+    return this;
+  }
 
-    public String getErrorOutput() {
-        return errorOutput;
-    }
+  public String getErrorOutput() {
+    return errorOutput;
+  }
 
-    public CodeRunnerStatus setErrorOutput(String errorOutput) {
-        this.errorOutput = errorOutput;
-        return this;
-    }
+  public CodeRunnerStatus setErrorOutput(String errorOutput) {
+    this.errorOutput = errorOutput;
+    return this;
+  }
 
-    public RunnerStatus getStatus() {
-        return status;
-    }
+  public RunnerStatus getStatus() {
+    return status;
+  }
 
-    public CodeRunnerStatus setStatus(RunnerStatus status) {
-        this.status = status;
-        return this;
-    }
+  public CodeRunnerStatus setStatus(RunnerStatus status) {
+    this.status = status;
+    return this;
+  }
 }

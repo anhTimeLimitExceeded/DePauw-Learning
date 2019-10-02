@@ -5,9 +5,12 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import edu.depauw.itap.compiler.CompilerService;
+import edu.depauw.itap.util.TestData;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collections;
@@ -20,8 +23,6 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerService;
-import edu.depauw.itap.util.TestData;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CodeRunnerServiceIntegrationTest {
@@ -55,18 +56,22 @@ public class CodeRunnerServiceIntegrationTest {
     when(codeRunnerFactory.createCodeRunner(eq("test"), any(), any(), any()))
         .thenReturn(codeRunner);
 
-    codeRunnerService.createThread("test", source, messageHeaders, compilerService,
-        messagingTemplate);
+    codeRunnerService.createThread("test", source, messageHeaders);
 
     while (codeRunnerService.anyRunning()) {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        // Ignore
+      }
     }
 
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
         same(compilerService), same(messagingTemplate));
     verify(codeRunner, times(1)).setSources(same(source));
-    verify(codeRunner, times(1)).run();
-    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"), eq("/topic/runner/status"),
-        argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
+    verify(codeRunner, timeout(250).times(1)).run();
+    verify(messagingTemplate, timeout(250).times(1)).convertAndSendToUser(eq("test"),
+        eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello World!\n")),
         same(messageHeaders));
   }
@@ -93,13 +98,16 @@ public class CodeRunnerServiceIntegrationTest {
     when(codeRunnerFactory.createCodeRunner(eq("test2"), any(), any(), any()))
         .thenReturn(codeRunnerSecond);
 
-    codeRunnerService.createThread("test1", sourceFirst, messageHeaders, compilerService,
-        messagingTemplate);
+    codeRunnerService.createThread("test1", sourceFirst, messageHeaders);
 
-    codeRunnerService.createThread("test2", sourceSecond, messageHeaders, compilerService,
-        messagingTemplate);
+    codeRunnerService.createThread("test2", sourceSecond, messageHeaders);
 
     while (codeRunnerService.anyRunning()) {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        // Ignore
+      }
     }
 
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test1"), same(messageHeaders),
@@ -108,15 +116,15 @@ public class CodeRunnerServiceIntegrationTest {
         same(compilerService), same(messagingTemplate));
 
     verify(codeRunnerFirst, times(1)).setSources(same(sourceFirst));
-    verify(codeRunnerFirst, times(1)).run();
-    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test1"),
+    verify(codeRunnerFirst, timeout(250).times(1)).run();
+    verify(messagingTemplate, timeout(250).times(1)).convertAndSendToUser(eq("test1"),
         eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello Test 1!\n")),
         same(messageHeaders));
 
     verify(codeRunnerSecond, times(1)).setSources(same(sourceSecond));
-    verify(codeRunnerSecond, times(1)).run();
-    verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test2"),
+    verify(codeRunnerSecond, timeout(250).times(1)).run();
+    verify(messagingTemplate, timeout(250).times(1)).convertAndSendToUser(eq("test2"),
         eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
             && arg.getOutput().equals("Hello Test 2!\n")),
         same(messageHeaders));

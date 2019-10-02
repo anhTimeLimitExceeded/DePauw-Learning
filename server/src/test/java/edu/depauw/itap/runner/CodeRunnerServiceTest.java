@@ -6,9 +6,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import edu.depauw.itap.compiler.CompilerService;
+import edu.depauw.itap.util.TestData;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -18,8 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerService;
-import edu.depauw.itap.util.TestData;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CodeRunnerServiceTest {
@@ -49,17 +50,16 @@ public class CodeRunnerServiceTest {
     when(codeRunnerFactory.createCodeRunner(eq("test"), any(), any(), any()))
         .thenReturn(codeRunner);
 
-    codeRunnerService.createThread("test", sourceList, messageHeaders, compilerService,
-        messagingTemplate);
+    codeRunnerService.createThread("test", sourceList, messageHeaders);
 
     verify(codeRunnerFactory, times(1)).createCodeRunner(eq("test"), same(messageHeaders),
         same(compilerService), same(messagingTemplate));
     verify(codeRunner, times(1)).setSources(same(sourceList));
-    verify(codeRunner, times(1)).run();
+    verify(codeRunner, timeout(1000).times(1)).run();
   }
 
   @Test
-  public void testAnyThreadRunning() {
+  public void testAnyThreadRunning() throws InterruptedException {
     sourceList.add(TestData.VALID_SOURCE);
 
     CodeRunner codeRunner = spy(new FakeCodeRunner());
@@ -69,10 +69,10 @@ public class CodeRunnerServiceTest {
 
     assertThat(codeRunnerService.anyRunning()).isFalse();
 
-    codeRunnerService.createThread("test", sourceList, messageHeaders, compilerService,
-        messagingTemplate);
+    codeRunnerService.createThread("test", sourceList, messageHeaders);
 
     while (!codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
+      Thread.sleep(25);
     }
 
     assertThat(codeRunnerService.anyRunning()).isTrue();
@@ -81,8 +81,11 @@ public class CodeRunnerServiceTest {
       codeRunner.notify();
     }
 
-    while (!codeRunner.getStatus().equals(RunnerStatus.STOPPED)) {
+    while (codeRunner.getStatus().equals(RunnerStatus.RUNNING)) {
+      Thread.sleep(25);
     }
+
+    Thread.sleep(50);
 
     assertThat(codeRunnerService.anyRunning()).isFalse();
   }
