@@ -1,6 +1,7 @@
 package edu.depauw.itap.compiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import edu.depauw.itap.util.TestData;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import edu.depauw.itap.util.TestData;
 
 @RunWith(JUnit4.class)
 public class CompilerServiceTest {

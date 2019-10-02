@@ -8,9 +8,13 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import edu.depauw.itap.compiler.CompilerResponse;
+import edu.depauw.itap.compiler.CompilerService;
+import edu.depauw.itap.util.TestData;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,9 +31,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import edu.depauw.itap.compiler.CompilerResponse;
-import edu.depauw.itap.compiler.CompilerService;
-import edu.depauw.itap.util.TestData;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CodeRunnerTest {
@@ -45,7 +46,7 @@ public class CodeRunnerTest {
   @Mock
   private Clock clock;
 
-  private CodeRunnerImpl codeRunner;
+  private CodeRunner codeRunner;
 
   private List<String> sourceList;
 
@@ -117,7 +118,7 @@ public class CodeRunnerTest {
 
     for (int i = 0; i < 5; i++) {
       final int n = i;
-      inOrder.verify(messagingTemplate, times(1)).convertAndSendToUser(eq("test"),
+      inOrder.verify(messagingTemplate, timeout(100).times(1)).convertAndSendToUser(eq("test"),
           eq("/topic/runner/status"), argThat((CodeRunnerStatus arg) -> arg.getOutput() != null
               && arg.getOutput().equals(Integer.toString(n) + "\n")),
           same(messageHeaders));
@@ -126,8 +127,6 @@ public class CodeRunnerTest {
 
   @Test
   public void testInvalidCode() {
-    when(clock.instant()).thenReturn(Instant.ofEpochSecond(1000000));
-
     sourceList.add(TestData.getInvalidSource());
     codeRunner.setSources(sourceList);
     try {

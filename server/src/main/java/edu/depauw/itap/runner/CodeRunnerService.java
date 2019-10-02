@@ -1,5 +1,6 @@
 package edu.depauw.itap.runner;
 
+import edu.depauw.itap.compiler.CompilerService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import edu.depauw.itap.compiler.CompilerService;
 
 @Service
 public class CodeRunnerService {
+  @Autowired
+  private CompilerService compilerService;
+
+  @Autowired
+  private SimpMessagingTemplate messagingTemplate;
+
   @Autowired
   private CodeRunnerFactory codeRunnerFactory;
 
@@ -26,6 +32,8 @@ public class CodeRunnerService {
   private final Thread queueRunner;
 
   private boolean running = true;
+
+  private volatile boolean waitingForThreadToFinish = false;
 
   public CodeRunnerService() {
     this.sessionToCodeRunner = new HashMap<>();
@@ -40,7 +48,9 @@ public class CodeRunnerService {
             Thread currentThread = threadQueue.poll(500, TimeUnit.MILLISECONDS);
             if (currentThread != null) {
               currentThread.start();
+              waitingForThreadToFinish = true;
               currentThread.join();
+              waitingForThreadToFinish = false;
             }
           } catch (InterruptedException e) {
             e.printStackTrace();
@@ -52,12 +62,15 @@ public class CodeRunnerService {
   }
 
   public boolean anyRunning() {
-    return !threadQueue.isEmpty() || sessionToThread.entrySet().stream().map(Map.Entry::getValue)
-        .anyMatch((thread) -> thread.isAlive());
+    return this.waitingForThreadToFinish || !this.threadQueue.isEmpty() || this.sessionToThread
+        .entrySet().stream().map(Map.Entry::getValue).anyMatch((thread) -> thread.isAlive());
   }
 
-  public void createThread(String session, List<String> sources, MessageHeaders messageHeaders,
-      CompilerService compilerService, SimpMessagingTemplate messagingTemplate) {
+  /**
+   * Creates a code running thread for a given session and sources with the given message headers
+   * and the messaging template.
+   */
+  public void createThread(String session, List<String> sources, MessageHeaders messageHeaders) {
     CodeRunner runner = sessionToCodeRunner.computeIfAbsent(session, (k) -> codeRunnerFactory
         .createCodeRunner(session, messageHeaders, compilerService, messagingTemplate));
     runner.setSources(sources);

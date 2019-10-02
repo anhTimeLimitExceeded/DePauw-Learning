@@ -1,6 +1,9 @@
 package edu.depauw.itap.runner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import edu.depauw.itap.compiler.CompilerSources;
+import edu.depauw.itap.util.TestData;
+import edu.depauw.itap.util.TestSocket;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,9 +26,6 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
-import edu.depauw.itap.compiler.CompilerSources;
-import edu.depauw.itap.util.TestData;
-import edu.depauw.itap.util.TestSocket;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

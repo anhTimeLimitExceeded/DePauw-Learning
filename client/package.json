@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "test:unit": "vue-cli-service test:unit"
+    "serve": "npx vue-cli-service serve",
+    "build": "npx vue-cli-service build",
+    "lint": "npx vue-cli-service lint",
+    "test:unit": "npx vue-cli-service test:unit"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.6.2",
+    "@vue/cli": "^3.11.0",
     "@vue/cli-plugin-babel": "^3.11.0",
     "@vue/cli-plugin-eslint": "^3.11.0",
     "@vue/cli-plugin-unit-jest": "^3.11.0",

@@ -13,6 +13,7 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(lodash-es)|(monaco-editor)/)',
   ],
+  cacheDirectory: './.cache',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     'monaco-editor': '<rootDir>/node_modules/monaco-editor/esm/vs/editor/editor.api',
