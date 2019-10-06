@@ -220,8 +220,8 @@ export default {
 .editor-wrapper {
   flex: 1 1 auto;
   display: flex;
-  min-height: 0;
-  min-width: 0;
+  min-height: 350px;
+  min-width: 100px;
 }
 
 .editor {
