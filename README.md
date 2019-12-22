@@ -3,15 +3,6 @@
 Repo to hold all of the ITAP 2019-2020 code.
 
 ## Getting Started
-
-To clone the repo, go to a directory where you want to add the repo and type:
-
-```
-git clone https://github.com/jparenas/DePauw-Learning.git
-```
-
-It will download all of the files in the repo.
-
 ### Prerequisites
 
 To install, you need two things:
